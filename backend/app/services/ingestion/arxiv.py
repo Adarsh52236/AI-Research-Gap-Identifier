@@ -1,5 +1,5 @@
 import re
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from typing import List
 import httpx
 import feedparser
@@ -70,9 +70,9 @@ class ArxivSource(PaperSource):
 
                 published_parsed = entry.get("published_parsed")
                 if published_parsed:
-                    published_date = datetime(*published_parsed[:6], tzinfo=UTC)
+                    published_date = datetime(*published_parsed[:6], tzinfo=timezone.utc)
                 else:
-                    published_date = datetime.now(UTC)
+                    published_date = datetime.now(timezone.utc)
 
                 paper = Paper(
                     title=clean_text(entry.get("title", "")),
