@@ -21,6 +21,15 @@ class Settings(BaseSettings):
             "TemporalGapStrategy": 1.5
         }
     }
+    # LLM Settings
+    llm_provider: str = "mock"
+    grok_api_key: str | None = None
+    grok_model: str = "grok-beta"
+
+    # JWT Authentication
+    secret_key: str = "supersecret_default_key_change_in_production"
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30
     
     model_config = SettingsConfigDict(
         env_file=".env", 

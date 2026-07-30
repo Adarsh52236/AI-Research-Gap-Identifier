@@ -7,7 +7,7 @@ interface ProjectStoreContextType {
   isLoading: boolean;
   error: string | null;
   fetchProjects: () => Promise<void>;
-  createProject: (data: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'analysisCount' | 'lastAnalysis'>) => Promise<void>;
+  createProject: (data: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'analysisCount' | 'lastAnalysis'>) => Promise<Project>;
   updateProject: (id: string, data: Partial<Project>) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   
@@ -41,6 +41,7 @@ export function ProjectStoreProvider({ children }: { children: ReactNode }) {
     try {
       const newProject = await projectsApi.createProject(data);
       setProjects(prev => [newProject, ...prev]);
+      return newProject;
     } catch (err: any) {
       throw new Error(err.message || 'Failed to create project');
     }

@@ -1,5 +1,6 @@
 import { useState, useRef, useCallback } from 'react';
 import { analysisApi } from '@/api/analysis';
+import { persistentAnalysisApi } from '../api/persistentAnalysis';
 import { AnalysisError } from '../types';
 import { useAnalysisStore } from '@/store/analysisStore';
 
@@ -14,7 +15,7 @@ export function useAnalysis() {
   
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const runAnalysis = useCallback(async (query: string, maxResults: number) => {
+  const runAnalysis = useCallback(async (query: string, maxResults: number, projectId?: string) => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -27,23 +28,32 @@ export function useAnalysis() {
     setStatus('loading');
 
     try {
-      const response = await analysisApi.runAnalysis(query, maxResults, controller.signal);
-      
-      addSession({
-        id: newId,
-        timestamp: new Date().toISOString(),
-        query,
-        status: 'success',
-        data: response,
-        metadata: {
-          paperCount: response.papers_indexed,
-          topicCount: response.topics.topics.length,
-          gapCount: response.gaps.total_gaps,
-          durationSeconds: response.duration_seconds
-        }
-      });
-      
-      setStatus('success');
+      if (projectId) {
+        // Persistent Analysis
+        const response = await persistentAnalysisApi.createAnalysis(projectId, query, maxResults);
+        setStatus('success');
+        return response.id; // Return DB ID for navigation
+      } else {
+        // Local Ephemeral Analysis
+        const response = await analysisApi.runAnalysis(query, maxResults, controller.signal);
+        
+        addSession({
+          id: newId,
+          timestamp: new Date().toISOString(),
+          query,
+          status: 'success',
+          data: response,
+          metadata: {
+            paperCount: response.papers_indexed,
+            topicCount: response.topics.topics.length,
+            gapCount: response.gaps.total_gaps,
+            durationSeconds: response.duration_seconds
+          }
+        });
+        
+        setStatus('success');
+        return newId;
+      }
     } catch (err: any) {
       if (err.message === 'Request cancelled') {
         return;

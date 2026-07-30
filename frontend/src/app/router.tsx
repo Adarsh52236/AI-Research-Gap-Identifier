@@ -14,10 +14,16 @@ import { Dashboard } from '@/pages/Dashboard';
 import { ProjectsPage } from '@/features/projects/pages/ProjectsPage';
 import { ProjectDetailPage } from '@/features/projects/pages/ProjectDetailPage';
 import { Analysis } from '@/pages/Analysis';
+import { AnalysisViewer } from '@/features/analysis/components/AnalysisViewer';
 import { Reports } from '@/pages/Reports';
 import { Library } from '@/pages/Library';
 import { Settings } from '@/pages/Settings';
 import { NotFound } from '@/pages/NotFound';
+
+import { LoginPage } from '@/features/auth/pages/LoginPage';
+import { RegisterPage } from '@/features/auth/pages/RegisterPage';
+import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
+import { GuestRoute } from '@/features/auth/components/GuestRoute';
 
 // Route Metadata Configuration
 export const ROUTES = {
@@ -62,8 +68,28 @@ export const ROUTES = {
 // Router Configuration
 export const router = createBrowserRouter([
   {
+    path: '/login',
+    element: (
+      <GuestRoute>
+        <LoginPage />
+      </GuestRoute>
+    ),
+  },
+  {
+    path: '/register',
+    element: (
+      <GuestRoute>
+        <RegisterPage />
+      </GuestRoute>
+    ),
+  },
+  {
     path: '/',
-    element: <AppLayout />,
+    element: (
+      <ProtectedRoute>
+        <AppLayout />
+      </ProtectedRoute>
+    ),
     errorElement: <NotFound />,
     children: [
       {
@@ -81,6 +107,10 @@ export const router = createBrowserRouter([
       {
         path: ROUTES.ANALYSIS.path,
         element: <Analysis />,
+      },
+      {
+        path: '/analysis/:analysisId',
+        element: <AnalysisViewer />,
       },
       {
         path: ROUTES.LIBRARY.path,

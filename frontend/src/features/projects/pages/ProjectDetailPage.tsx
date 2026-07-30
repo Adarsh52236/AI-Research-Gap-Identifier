@@ -3,11 +3,12 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { useProjectStore } from '../store/projectStore';
 import { ArrowLeft, PlayCircle, Folder, Settings, Tag } from 'lucide-react';
+import { AnalysisHistory } from '@/features/analysis/components/AnalysisHistory';
 
 export function ProjectDetailPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
-  const { getProject, fetchProjects, projects } = useProjectStore();
+  const { getProject, fetchProjects, projects, isLoading } = useProjectStore();
 
   // If page is loaded directly, we might need to fetch
   useEffect(() => {
@@ -17,6 +18,17 @@ export function ProjectDetailPage() {
   }, [fetchProjects, projects.length]);
 
   const project = projectId ? getProject(projectId) : undefined;
+
+  if (isLoading && projects.length === 0) {
+    return (
+      <PageContainer>
+        <div className="flex justify-center items-center py-20 text-gray-400">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+          <span className="ml-3">Loading project...</span>
+        </div>
+      </PageContainer>
+    );
+  }
 
   if (!project) {
     return (
@@ -83,7 +95,7 @@ export function ProjectDetailPage() {
 
           <div className="flex flex-col sm:flex-row gap-3 md:mt-0 mt-4">
             <button 
-              onClick={() => navigate('/analysis')}
+              onClick={() => navigate(`/analysis?projectId=${project.id}`)}
               className="inline-flex items-center justify-center px-5 py-2.5 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             >
               <PlayCircle className="w-4 h-4 mr-2" />
@@ -101,12 +113,7 @@ export function ProjectDetailPage() {
         <div className="lg:col-span-2 space-y-8">
           <section className="bg-surface border border-border rounded-xl p-6 shadow-sm">
             <h2 className="text-xl font-bold text-text mb-4">Recent Analyses</h2>
-            <div className="text-center py-12 border-2 border-dashed border-gray-200 rounded-lg">
-              <p className="text-gray-500 mb-2">No analyses have been saved to this project yet.</p>
-              <Link to="/analysis" className="text-primary hover:underline font-medium text-sm">
-                Run your first analysis &rarr;
-              </Link>
-            </div>
+            <AnalysisHistory projectId={project.id} />
           </section>
 
           <section className="bg-surface border border-border rounded-xl p-6 shadow-sm">

@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 from uuid import UUID
+import uuid
 
 class ProjectStatus(str, Enum):
     ACTIVE = "active"
@@ -27,7 +28,6 @@ class ProjectUpdate(BaseModel):
 class ProjectResponse(ProjectBase):
     id: UUID
     favorite: bool
-    owner_id: Optional[str] = None
     created_at: datetime
     updated_at: datetime
     

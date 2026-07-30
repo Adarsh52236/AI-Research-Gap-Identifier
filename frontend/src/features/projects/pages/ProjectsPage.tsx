@@ -5,6 +5,7 @@ import { useProjectSort } from '../hooks/useProjectSort';
 import { ProjectGrid } from '../components/ProjectGrid';
 import { ProjectEmptyState } from '../components/ProjectEmptyState';
 import { CreateProjectDialog } from '../components/CreateProjectDialog';
+import { ProjectGridSkeleton } from '../components/ProjectGridSkeleton';
 import { useState, useEffect } from 'react';
 import { Search, FolderPlus, SlidersHorizontal } from 'lucide-react';
 import { ProjectSortOption } from '../types';
@@ -31,7 +32,7 @@ export function ProjectsPage() {
           <p className="text-muted mt-1">Manage and organize your AI literature analysis workspaces.</p>
         </div>
         
-        {!isEmpty && (
+        {!isEmpty && !isLoading && (
           <button
             onClick={() => setIsCreateOpen(true)}
             className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
@@ -42,7 +43,7 @@ export function ProjectsPage() {
         )}
       </div>
 
-      {!isEmpty && (
+      {!isEmpty && !isLoading && (
         <div className="flex flex-col md:flex-row gap-4 mb-6">
           <div className="relative flex-1 max-w-lg">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -73,9 +74,7 @@ export function ProjectsPage() {
       )}
 
       {isLoading && (
-        <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
+        <ProjectGridSkeleton />
       )}
 
       {!isLoading && isEmpty && (

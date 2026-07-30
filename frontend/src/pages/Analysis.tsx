@@ -11,20 +11,45 @@ import { AnalysisHistory } from '@/features/analysis/components/AnalysisHistory'
 import { AnalysisHeader } from '@/features/analysis/components/AnalysisHeader';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useAnalysisStore } from '@/store/analysisStore';
+import { useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 
 export function Analysis() {
-  const { status, data, error, currentSessionId, runAnalysis, loadSession, reset } = useAnalysis();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const projectId = searchParams.get('projectId');
+  const initialQuery = searchParams.get('query');
+  const navigate = useNavigate();
+
+  const { status, data, error, currentSessionId, runAnalysis, reset } = useAnalysis();
+
+  const handleSubmit = async (query: string, maxResults: number) => {
+    const analysisId = await runAnalysis(query, maxResults, projectId || undefined);
+    if (projectId && analysisId) {
+      navigate(`/analysis/${analysisId}`);
+    }
+  };
+
+  // Auto-run if we came from Omnibar
+  useEffect(() => {
+    if (initialQuery && status === 'idle' && projectId) {
+      handleSubmit(initialQuery, 100);
+      
+      // Clean up URL so it doesn't re-trigger on back navigation
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('query');
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [initialQuery, status, projectId, searchParams, setSearchParams]);
+
   const { sessions } = useAnalysisStore();
   const currentSession = sessions.find(s => s.id === currentSessionId);
 
-  const hasHistory = sessions.length > 0;
-
   return (
     <PageContainer>
-      <div className={`grid grid-cols-1 ${hasHistory ? 'xl:grid-cols-4' : ''} gap-8`}>
+      <div className={`grid grid-cols-1 ${projectId ? 'xl:grid-cols-4' : ''} gap-8`}>
         
-        {/* Left Column: History (Only visible if history exists) */}
-        {hasHistory && (
+        {/* Left Column: History (Only visible if in a project context) */}
+        {projectId && (
           <div className="xl:col-span-1">
             <div className="sticky top-6 space-y-6">
               <button
@@ -33,21 +58,21 @@ export function Analysis() {
               >
                 + New Analysis
               </button>
-              <AnalysisHistory onSelect={loadSession} activeId={currentSessionId} />
+              <AnalysisHistory projectId={projectId} />
             </div>
           </div>
         )}
 
         {/* Right Column: Main Content */}
-        <div className={hasHistory ? 'xl:col-span-3' : ''}>
+        <div className={projectId ? 'xl:col-span-3' : ''}>
           
           {status === 'idle' && (
-            <AnalysisForm onSubmit={runAnalysis} isLoading={false} />
+            <AnalysisForm onSubmit={handleSubmit} isLoading={false} />
           )}
 
           {status === 'loading' && (
             <div className="space-y-6">
-              <AnalysisForm onSubmit={runAnalysis} isLoading={true} />
+              <AnalysisForm onSubmit={handleSubmit} isLoading={true} />
               <AnalysisProgress />
             </div>
           )}
@@ -68,7 +93,7 @@ export function Analysis() {
                       {error.retryable && currentSession && (
                         <button
                           type="button"
-                          onClick={() => runAnalysis(currentSession.query, 100)}
+                          onClick={() => handleSubmit(currentSession.query, 100)}
                           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                         >
                           <RefreshCw className="w-4 h-4 mr-2" />

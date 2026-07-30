@@ -27,6 +27,8 @@ def get_research_analysis_service() -> ResearchAnalysisService:
     from app.services.llm_reasoning.service import LLMReasoningService
     from app.services.llm_reasoning.prompt_builder import PromptBuilder
     from app.services.llm_reasoning.provider import MockLLMProvider
+    from app.services.llm_reasoning.grok_provider import GrokLLMProvider
+    from app.core.config import settings
     
     try:
         print("\n--- Dependency Initialization Report ---")
@@ -83,7 +85,17 @@ def get_research_analysis_service() -> ResearchAnalysisService:
         
         print("Initializing LLMReasoningService...")
         llm_builder = PromptBuilder()
-        llm_provider = MockLLMProvider()
+        
+        if settings.llm_provider.lower() == "grok":
+            if not settings.grok_api_key:
+                raise ValueError("GROK_API_KEY is not set in environment or configuration.")
+            llm_provider = GrokLLMProvider(
+                api_key=settings.grok_api_key,
+                model_name=settings.grok_model
+            )
+        else:
+            llm_provider = MockLLMProvider()
+            
         llm_svc = LLMReasoningService(prompt_builder=llm_builder, provider=llm_provider)
         print("✓ LLMReasoningService initialized.")
         

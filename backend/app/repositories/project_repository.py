@@ -10,20 +10,29 @@ class ProjectRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_by_id(self, project_id: UUID) -> Optional[Project]:
+    def get_owned_project(self, project_id: UUID, user_id: UUID) -> Optional[Project]:
         stmt = select(Project).where(
-            and_(Project.id == project_id, Project.deleted_at.is_(None))
+            and_(
+                Project.id == project_id, 
+                Project.user_id == user_id,
+                Project.deleted_at.is_(None)
+            )
         )
         return self.db.execute(stmt).scalar_one_or_none()
         
-    def get_by_name(self, name: str) -> Optional[Project]:
+    def get_owned_project_by_name(self, name: str, user_id: UUID) -> Optional[Project]:
         stmt = select(Project).where(
-            and_(Project.name == name, Project.deleted_at.is_(None))
+            and_(
+                Project.name == name, 
+                Project.user_id == user_id,
+                Project.deleted_at.is_(None)
+            )
         )
         return self.db.execute(stmt).scalar_one_or_none()
 
-    def get_all(
+    def list_owned_projects(
         self, 
+        user_id: UUID,
         skip: int = 0, 
         limit: int = 100, 
         search: Optional[str] = None,
@@ -32,7 +41,12 @@ class ProjectRepository:
         status: Optional[ProjectStatus] = None,
         favorite: Optional[bool] = None
     ) -> List[Project]:
-        stmt = select(Project).where(Project.deleted_at.is_(None))
+        stmt = select(Project).where(
+            and_(
+                Project.user_id == user_id,
+                Project.deleted_at.is_(None)
+            )
+        )
 
         if search:
             search_term = f"%{search}%"
@@ -56,12 +70,13 @@ class ProjectRepository:
         stmt = stmt.offset(skip).limit(limit)
         return list(self.db.execute(stmt).scalars().all())
 
-    def create(self, project_in: ProjectCreate) -> Project:
+    def create(self, project_in: ProjectCreate, user_id: UUID) -> Project:
         db_obj = Project(
             name=project_in.name,
             description=project_in.description,
             status=project_in.status,
-            tags=project_in.tags
+            tags=project_in.tags,
+            user_id=user_id
         )
         self.db.add(db_obj)
         self.db.commit()

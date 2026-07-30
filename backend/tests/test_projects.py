@@ -24,15 +24,29 @@ def override_get_db():
     finally:
         db.close()
 
-app.dependency_overrides[get_db] = override_get_db
+from app.api.deps import get_current_user_dep
+from app.models.user import User
+
+import uuid
+mock_user_id = uuid.uuid4()
+
+def override_get_current_user():
+    # Return a dummy user for legacy API tests that don't need real DB authentication
+    return User(id=mock_user_id, email="test@example.com", username="testuser")
+
+
 
 client = TestClient(app)
 
 @pytest.fixture(autouse=True)
-def clean_db():
+def setup_db():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user_dep] = override_get_current_user
     yield
+    Base.metadata.drop_all(bind=engine)
+    app.dependency_overrides.clear()
 
 def test_create_project():
     response = client.post("/projects", json={"name": "Test Project", "description": "Desc"})
