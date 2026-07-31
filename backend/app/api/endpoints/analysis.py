@@ -27,7 +27,7 @@ def get_research_analysis_service() -> ResearchAnalysisService:
     from app.services.llm_reasoning.service import LLMReasoningService
     from app.services.llm_reasoning.prompt_builder import PromptBuilder
     from app.services.llm_reasoning.provider import MockLLMProvider
-    from app.services.llm_reasoning.grok_provider import GrokLLMProvider
+    from app.services.llm_reasoning.groq_provider import GroqLLMProvider
     from app.core.config import settings
     
     try:
@@ -86,12 +86,13 @@ def get_research_analysis_service() -> ResearchAnalysisService:
         print("Initializing LLMReasoningService...")
         llm_builder = PromptBuilder()
         
-        if settings.llm_provider.lower() == "grok":
-            if not settings.grok_api_key:
-                raise ValueError("GROK_API_KEY is not set in environment or configuration.")
-            llm_provider = GrokLLMProvider(
-                api_key=settings.grok_api_key,
-                model_name=settings.grok_model
+        provider_name = settings.llm_provider.lower()
+        if provider_name == "groq":
+            if not settings.groq_api_key:
+                raise ValueError("GROQ_API_KEY is not set in environment or configuration.")
+            llm_provider = GroqLLMProvider(
+                api_key=settings.groq_api_key,
+                model_name=settings.groq_model
             )
         else:
             llm_provider = MockLLMProvider()

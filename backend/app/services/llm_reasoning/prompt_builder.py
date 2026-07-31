@@ -9,33 +9,41 @@ class PromptBuilder:
         Builds a comprehensive prompt string based on the provided ResearchGap.
         """
         try:
-            evidence_str = "\n".join([f"- {e.category}: {e.message}" for e in gap.evidence])
+            evidence_str = "\n".join([f"- [{e.category.upper()}] {e.message}" for e in gap.evidence])
             topics_str = ", ".join(map(str, gap.supporting_topics))
             
             prompt = f"""
-You are an expert AI research assistant. Analyze the following discovered research gap and provide structured insights.
+You are an expert AI Research Scientist and Principal Investigator. Your task is to perform a rigorous, academic-grade analysis of a newly discovered research gap.
 
-# Discovered Gap
-Title: {gap.title}
-Description: {gap.description}
-Confidence Score: {gap.confidence:.2f}
-Supporting Topics: {topics_str}
+# Research Context
+Topic/Domain: {topics_str}
+Identified Gap: {gap.title}
+Contextual Description: {gap.description}
+Statistical Confidence: {gap.confidence:.2f} / 1.00
 
-# Evidence
+# Supporting Evidence Extracted from Literature
 {evidence_str}
 
-# Instructions
-Based strictly on the provided information, please:
-1. Explain why this may represent a significant research gap.
-2. Suggest concrete future research directions.
-3. Mention any potential limitations or caveats.
-4. Avoid unsupported claims or hallucinating external information.
+# Task Definition
+Analyze the provided evidence and formulate a professional, highly analytical research gap assessment. Your analysis must be tailored specifically to the exact domain and evidence provided. Avoid generic filler.
 
-Please return the output in JSON format with the following keys:
-- "summary" (string)
-- "research_opportunities" (list of strings)
-- "future_directions" (list of strings)
-- "limitations" (list of strings)
+# Required Output
+Respond ONLY with a valid JSON object matching this schema exactly:
+{{
+  "summary": "A cohesive, highly professional paragraph (4-6 sentences) synthesizing why this specific gap exists, its academic or industrial significance, and the underlying challenges preventing its resolution thus far.",
+  "research_opportunities": [
+    "Specific, actionable opportunity 1 (focused on novel methodology or architecture).",
+    "Specific, actionable opportunity 2 (focused on theoretical extensions)."
+  ],
+  "future_directions": [
+    "Long-term research direction 1.",
+    "Long-term research direction 2."
+  ],
+  "limitations": [
+    "Methodological or data-related limitation to be aware of when addressing this gap.",
+    "Potential confounding factors or engineering bottlenecks."
+  ]
+}}
 """
             return prompt.strip()
         except Exception as e:

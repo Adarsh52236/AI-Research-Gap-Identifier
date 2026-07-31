@@ -22,9 +22,9 @@ class Settings(BaseSettings):
         }
     }
     # LLM Settings
-    llm_provider: str = "mock"
-    grok_api_key: str | None = None
-    grok_model: str = "grok-beta"
+    llm_provider: str = "groq"
+    groq_api_key: str | None = None
+    groq_model: str = "llama-3.3-70b-versatile"
 
     # JWT Authentication
     secret_key: str = "supersecret_default_key_change_in_production"
