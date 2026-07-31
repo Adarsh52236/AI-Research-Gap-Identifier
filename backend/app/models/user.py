@@ -39,3 +39,4 @@ class User(Base):
     )
 
     projects: Mapped[List["Project"]] = relationship("Project", back_populates="user", cascade="all, delete-orphan")
+    chat_sessions: Mapped[List["ChatSession"]] = relationship("ChatSession", back_populates="user", cascade="all, delete-orphan")

@@ -49,7 +49,7 @@ class AnalysisService:
             result = self.ai_service.run_analysis(query=query, max_results=max_results)
             
             # 3. Extract metadata
-            summary_text = f"Found {result.papers_indexed} indexed papers, detected {result.gaps.total_gaps} gaps across {len(result.topics.topics)} topics."
+            summary_text = f"Found {result.overview.papers_retrieved} retrieved papers, processed {result.overview.papers_processed} papers, detected {len(result.gaps)} gaps across {len(result.topics)} topics."
             
             # Generate raw_response by serializing the result safely
             import dataclasses, json
@@ -67,21 +67,23 @@ class AnalysisService:
             # 4. Update Analysis
             update_in = AnalysisUpdate(
                 status=AnalysisStatus.COMPLETED,
-                paper_count=result.papers_indexed,
-                topic_count=len(result.topics.topics),
-                gap_count=result.gaps.total_gaps,
+                paper_count=result.overview.papers_processed,
+                topic_count=len(result.topics),
+                gap_count=len(result.gaps),
                 summary=summary_text,
                 raw_response=raw_response,
-                completed_at=result.completed_at
+                completed_at=result.overview.timestamp
             )
             return self.repository.update(analysis_db, update_in)
             
         except Exception as e:
+            import traceback
             # 5. Handle failures
             update_in = AnalysisUpdate(
                 status=AnalysisStatus.FAILED,
-                error_message=str(e),
+                error_message=traceback.format_exc(),
                 completed_at=datetime.now(timezone.utc)
             )
             self.repository.update(analysis_db, update_in)
             raise e
+# trigger reload

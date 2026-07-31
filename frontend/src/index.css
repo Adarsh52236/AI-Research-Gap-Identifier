@@ -4,25 +4,26 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --surface: 0 0% 100%;
-    --sidebar: 222 47% 11%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --text: 222.2 84% 4.9%;
-    --muted: 215.4 16.3% 46.9%;
+    --background: 210 20% 98%;      /* #F7F8FA */
+    --surface: 0 0% 100%;           /* #FFFFFF */
+    --sidebar: 210 20% 98%;         /* #F7F8FA */
+    --primary: 243 75% 59%;         /* #4F46E5 */
+    --primary-foreground: 0 0% 100%;
+    --border: 220 13% 91%;          /* #E5E7EB */
+    --text: 240 21% 15%;            /* #1E1E2E */
+    --muted: 220 9% 46%;            /* #6B7280 */
   }
 
+  /* Force light theme values even in dark mode for now to ensure consistency as requested */
   .dark {
-    --background: 222.2 84% 4.9%;
-    --surface: 222.2 84% 4.9%;
-    --sidebar: 222 47% 11%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --border: 217.2 32.6% 17.5%;
-    --text: 210 40% 98%;
-    --muted: 215 20.2% 65.1%;
+    --background: 210 20% 98%;
+    --surface: 0 0% 100%;
+    --sidebar: 210 20% 98%;
+    --primary: 243 75% 59%;
+    --primary-foreground: 0 0% 100%;
+    --border: 220 13% 91%;
+    --text: 240 21% 15%;
+    --muted: 220 9% 46%;
   }
 }
 

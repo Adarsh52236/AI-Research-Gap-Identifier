@@ -3,7 +3,7 @@ from .provider import MockLLMProvider
 from .groq_provider import GroqLLMProvider
 from .prompt_builder import PromptBuilder
 from .service import LLMReasoningService
-from .models import ResearchInsight
+from .models import LLMTopicRefinement, LLMKeyFinding, LLMGapRefinement, LLMExecutiveSummary
 from .exceptions import (
     LLMReasoningError,
     PromptGenerationError,
@@ -20,7 +20,10 @@ __all__ = [
     "GroqLLMProvider",
     "PromptBuilder",
     "LLMReasoningService",
-    "ResearchInsight",
+    "LLMTopicRefinement",
+    "LLMKeyFinding", 
+    "LLMGapRefinement", 
+    "LLMExecutiveSummary",
     "LLMReasoningError",
     "PromptGenerationError",
     "LLMProviderError",

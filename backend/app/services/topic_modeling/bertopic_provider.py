@@ -88,6 +88,32 @@ class BERTopicProvider(TopicModelProvider):
         logger.info(f"Fitting BERTopic model on {len(documents)} documents.")
         start_time = time.perf_counter()
         try:
+            # Handle small datasets by adjusting UMAP parameters
+            if len(documents) < 15 and self.model.umap_model is not None:
+                from umap import UMAP
+                n_neighbors = max(2, len(documents) - 1)
+                n_components = min(5, max(2, len(documents) - 2))
+                self.model.umap_model = UMAP(
+                    n_neighbors=n_neighbors, 
+                    n_components=n_components, 
+                    min_dist=0.0, 
+                    metric='cosine'
+                )
+                logger.info(f"Adjusted UMAP parameters for small dataset: n_neighbors={n_neighbors}, n_components={n_components}")
+                
+            if len(documents) < 15 and self.model.hdbscan_model is not None:
+                from hdbscan import HDBSCAN
+                min_cluster_size = max(2, min(5, len(documents) // 2))
+                min_samples = max(1, min_cluster_size - 1)
+                self.model.hdbscan_model = HDBSCAN(
+                    min_cluster_size=min_cluster_size,
+                    min_samples=min_samples,
+                    metric='euclidean',
+                    cluster_selection_method='eom',
+                    prediction_data=True
+                )
+                logger.info(f"Adjusted HDBSCAN parameters for small dataset: min_cluster_size={min_cluster_size}, min_samples={min_samples}")
+                
             topics, _ = self.model.fit_transform(documents)
             self.is_fitted = True
             

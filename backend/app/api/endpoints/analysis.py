@@ -35,27 +35,21 @@ def get_research_analysis_service() -> ResearchAnalysisService:
         
         print("Initializing PaperService...")
         paper_svc = PaperService()
-        print("✓ PaperService initialized.")
         
         print("Initializing PaperPreprocessingPipeline...")
         idx_pipeline = PaperPreprocessingPipeline()
-        print("✓ PaperPreprocessingPipeline initialized.")
         
         print("Initializing SentenceTransformerProvider...")
         emb_provider = SentenceTransformerProvider()
-        print("✓ SentenceTransformerProvider initialized.")
         
         print("Initializing EmbeddingService...")
         emb_svc = EmbeddingService(provider=emb_provider)
-        print("✓ EmbeddingService initialized.")
         
         print("Initializing ChromaVectorStore...")
         vs_store = ChromaVectorStore(collection_name="research_papers")
-        print("✓ ChromaVectorStore initialized.")
         
         print("Initializing VectorStoreService...")
         vs_svc = VectorStoreService(store=vs_store)
-        print("✓ VectorStoreService initialized.")
         
         print("Initializing IndexingService...")
         idx_svc = IndexingService(
@@ -63,15 +57,12 @@ def get_research_analysis_service() -> ResearchAnalysisService:
             embedding_service=emb_svc,
             vector_store_service=vs_svc
         )
-        print("✓ IndexingService initialized.")
         
         print("Initializing BERTopicProvider...")
         topic_provider = BERTopicProvider()
-        print("✓ BERTopicProvider initialized.")
         
         print("Initializing TopicModelingService...")
         topic_svc = TopicModelingService(provider=topic_provider)
-        print("✓ TopicModelingService initialized.")
         
         print("Initializing GapDetectionService...")
         gap_strategies = [
@@ -81,7 +72,6 @@ def get_research_analysis_service() -> ResearchAnalysisService:
             TemporalGapStrategy()
         ]
         gap_svc = GapDetectionService(strategies=gap_strategies)
-        print("✓ GapDetectionService initialized.")
         
         print("Initializing LLMReasoningService...")
         llm_builder = PromptBuilder()
@@ -98,7 +88,7 @@ def get_research_analysis_service() -> ResearchAnalysisService:
             llm_provider = MockLLMProvider()
             
         llm_svc = LLMReasoningService(prompt_builder=llm_builder, provider=llm_provider)
-        print("✓ LLMReasoningService initialized.")
+        print(" LLMReasoningService initialized.")
         
         print("Initializing ResearchAnalysisService...")
         svc = ResearchAnalysisService(
@@ -108,7 +98,7 @@ def get_research_analysis_service() -> ResearchAnalysisService:
             gap_service=gap_svc,
             llm_service=llm_svc
         )
-        print("✓ ResearchAnalysisService initialized.")
+        print(" ResearchAnalysisService initialized.")
         print("----------------------------------------\n")
         
         return svc
@@ -134,7 +124,7 @@ def run_analysis(
             max_results=request.max_results
         )
         
-        logger.info(f"API Request completed: {result.duration_seconds:.2f}s elapsed.")
+        logger.info(f"API Request completed: {result.overview.processing_duration:.2f}s elapsed.")
         return result
         
     except ResearchAnalysisError as e:
