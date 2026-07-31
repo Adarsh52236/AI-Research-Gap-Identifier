@@ -115,17 +115,18 @@ def test_full_dependencies():
         
         from app.services.llm_reasoning.prompt_builder import PromptBuilder
         from app.services.llm_reasoning.provider import MockLLMProvider
-        from app.services.llm_reasoning.grok_provider import GrokLLMProvider
+        from app.services.llm_reasoning.groq_provider import GroqLLMProvider
         from app.services.llm_reasoning.service import LLMReasoningService
         from app.core.config import settings
         
         llm_builder = PromptBuilder()
-        if settings.llm_provider.lower() == "grok":
-            if not settings.grok_api_key:
-                raise ValueError("GROK_API_KEY is missing.")
-            llm_provider = GrokLLMProvider(
-                api_key=settings.grok_api_key,
-                model_name=settings.grok_model
+        provider_name = settings.llm_provider.lower()
+        if provider_name == "groq":
+            if not settings.groq_api_key:
+                raise ValueError("GROQ_API_KEY is missing.")
+            llm_provider = GroqLLMProvider(
+                api_key=settings.groq_api_key,
+                model_name=settings.groq_model
             )
         else:
             llm_provider = MockLLMProvider()

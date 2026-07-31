@@ -2,6 +2,7 @@ import { useState, KeyboardEvent } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useProjectStore } from '@/features/projects/store/projectStore';
+import { ProjectStatus } from '@/features/projects/types';
 
 export function Omnibar() {
   const [query, setQuery] = useState('');
@@ -35,7 +36,7 @@ export function Omnibar() {
         name: projectName,
         description: `Automated project for query: "${query}"`,
         tags: ['auto-generated'],
-        status: 'draft',
+        status: ProjectStatus.ACTIVE,
         favorite: false
       });
 
