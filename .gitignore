@@ -1,5 +1,9 @@
-node_modules/
-__pycache__/
-*.pyc
-.env
 venv/
+__pycache__/
+.env
+node_modules/
+dist/
+storage/downloads/
+storage/processed/
+storage/reports/
+.pytest_cache/

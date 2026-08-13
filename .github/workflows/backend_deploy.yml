@@ -1,0 +1,7 @@
+name: Backend Deploy
+on: [push]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'Deploying backend'

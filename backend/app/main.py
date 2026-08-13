@@ -1,29 +1,20 @@
+"""FastAPI app entry point."""
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from .api.v1 import search, upload, analysis, report, health
 
-from app.api.router import api_router
-from app.core.logging import logger
-
-logger.info("Initializing FastAPI application")
-
-app = FastAPI(
-    title="AI Research Gap Identifier API",
-    version="0.1.0",
-)
-
-# Configure CORS
-origins = [
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://localhost:5175",
-]
+app = FastAPI(title="AI Research Gap Identifier API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(api_router)
+app.include_router(search.router, prefix="/api/v1/search", tags=["search"])
+app.include_router(upload.router, prefix="/api/v1/upload", tags=["upload"])
+app.include_router(analysis.router, prefix="/api/v1/analysis", tags=["analysis"])
+app.include_router(report.router, prefix="/api/v1/report", tags=["report"])
+app.include_router(health.router, prefix="/api/v1/health", tags=["health"])
