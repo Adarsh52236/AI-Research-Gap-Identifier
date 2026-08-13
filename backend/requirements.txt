@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+python-dotenv
+sqlalchemy
+supabase
+chromadb
+groq
+sentence-transformers
+bertopic
+PyMuPDF
+requests
+httpx
+pydantic
+alembic
+pytest
+slowapi
+python-multipart
