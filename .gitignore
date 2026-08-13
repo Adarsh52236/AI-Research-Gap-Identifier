@@ -6,4 +6,5 @@ dist/
 storage/downloads/
 storage/processed/
 storage/reports/
+storage/chromadb/
 .pytest_cache/

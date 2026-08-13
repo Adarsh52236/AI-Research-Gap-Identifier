@@ -15,3 +15,4 @@ alembic
 pytest
 slowapi
 python-multipart
+pydantic-settings
