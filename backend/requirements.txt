@@ -17,3 +17,6 @@ slowapi
 python-multipart
 pydantic-settings
 psycopg[binary]
+PyJWT
+passlib
+bcrypt

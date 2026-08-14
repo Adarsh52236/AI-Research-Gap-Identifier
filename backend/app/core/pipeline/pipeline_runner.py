@@ -18,6 +18,9 @@ from backend.app.core.gap_analyzer.gap_report_service import GapReportService
 from backend.app.db.session import SessionLocal
 from backend.app.db import crud
 import os
+from backend.app.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 class PipelineRunner:
     def __init__(self):
@@ -29,12 +32,13 @@ class PipelineRunner:
         self.indexer = EmbeddingIndexingService()
         self.report_generator = GapReportService()
 
-    async def run(self, request: PipelineRunRequest) -> PipelineRunStatus:
+    async def run(self, request: PipelineRunRequest, user_id: int | None = None) -> PipelineRunStatus:
         timestamp = str(time.time())
-        run_id = hashlib.sha256((timestamp + request.query).encode()).hexdigest()[:12]
+        run_id = request.run_id if request.run_id else hashlib.sha256((timestamp + request.query).encode()).hexdigest()[:12]
         
         status = PipelineRunStatus(
             run_id=run_id,
+            user_id=user_id,
             status="running",
             started_at=datetime.utcnow().isoformat(),
             query=request.query,
@@ -46,8 +50,8 @@ class PipelineRunner:
         if db:
             try:
                 crud.create_or_update_run(db, status)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.error(f"Database error writing run status {run_id}: {e}")
                 
         papers_to_process = []
         
@@ -59,8 +63,8 @@ class PipelineRunner:
                 if db:
                     try:
                         crud.create_or_update_run(db, status)
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.error(f"Database error writing run status {run_id}: {e}")
                 self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "search", "msg": f"Searching for {request.query}"})
                 
                 search_results = await self.fetcher.search_all(
@@ -78,12 +82,12 @@ class PipelineRunner:
                     for p in papers_to_process:
                         try:
                             crud.upsert_paper(db, p)
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            logger.error(f"Database error upserting paper {p.paper_id}: {e}")
                     try:
                         crud.create_or_update_run(db, status)
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logger.error(f"Database error writing run status {run_id}: {e}")
                 self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "search", "msg": f"Found {len(papers_to_process)} papers"})
 
             valid_paper_ids = []
@@ -216,6 +220,7 @@ class PipelineRunner:
                         rep_req = GapReportRequest(
                             paper_ids=valid_paper_ids[:request.top_k_papers_for_report],
                             query=request.report_query or request.query,
+                            user_document_text=request.user_document_text,
                             save_report=True
                         )
                         rep_res = await self.report_generator.generate_report(rep_req)

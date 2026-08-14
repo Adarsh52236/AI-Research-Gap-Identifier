@@ -1,0 +1,27 @@
+{
+  "run_id": "33ed0159-8032-4162-8f9e-71dc0f94e893",
+  "user_id": null,
+  "status": "completed",
+  "current_step": null,
+  "started_at": "2026-08-14T11:39:59.500505",
+  "finished_at": "2026-08-14T11:40:13.358938",
+  "query": "Retrieval Augmented Generation for edge devices",
+  "steps": [
+    "search",
+    "download",
+    "extract",
+    "mine",
+    "index",
+    "report"
+  ],
+  "papers_found": 2,
+  "papers_downloaded": 0,
+  "papers_extracted": 0,
+  "papers_mined": 0,
+  "papers_indexed": 0,
+  "report_path": null,
+  "errors": [
+    "Download failed for 2506.06962v3: PDFDownloader.download_pdf() missing 4 required positional arguments: 'paper_id', 'source', 'title', and 'year'",
+    "Download failed for 2504.13684v1: PDFDownloader.download_pdf() missing 4 required positional arguments: 'paper_id', 'source', 'title', and 'year'"
+  ]
+}

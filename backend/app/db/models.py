@@ -64,10 +64,22 @@ class GapSignalRow(Base):
 
     paper = relationship("Paper", back_populates="gap_signals")
 
+class User(Base):
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=True)
+    hashed_password = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    pipeline_runs = relationship("PipelineRunRow", back_populates="user")
+
 class PipelineRunRow(Base):
     __tablename__ = "pipeline_runs"
     
     run_id = Column(String, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     status = Column(String, nullable=False)
     current_step = Column(String, nullable=True)
     query = Column(String, nullable=False)
@@ -81,6 +93,8 @@ class PipelineRunRow(Base):
     errors_json = Column(Text, nullable=True)
     started_at = Column(DateTime, default=datetime.utcnow)
     finished_at = Column(DateTime, nullable=True)
+
+    user = relationship("User", back_populates="pipeline_runs")
 
 class ReportRow(Base):
     __tablename__ = "reports"

@@ -6,12 +6,21 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.app.config import settings
 from backend.app.db.session import engine
 from backend.app.db.models import Base
-from backend.app.api.v1 import search, upload, analysis, report, health, papers
+from backend.app.api.v1 import search, upload, analysis, report, health, papers, auth
 
+from backend.app.utils.logger import get_logger
+logger = get_logger(__name__)
 
 # Initialize DB tables if DB is enabled
 if settings.DB_ENABLED and engine:
-    Base.metadata.create_all(bind=engine)
+    dialect = engine.dialect.name
+    logger.info(f"Database is ENABLED. Dialect in use: {dialect}")
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        logger.error(f"Database initialization failed: {str(e)}")
+else:
+    logger.info("Database is DISABLED or engine is not configured.")
 
 
 @asynccontextmanager
@@ -61,3 +70,4 @@ app.include_router(analysis.router, prefix="/api/v1/analysis", tags=["analysis"]
 app.include_router(report.router, prefix="/api/v1/report", tags=["report"])
 app.include_router(health.router, prefix="/api/v1/health", tags=["health"])
 app.include_router(papers.router, prefix="/api/v1/papers", tags=["papers"])
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])

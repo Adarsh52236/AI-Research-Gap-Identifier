@@ -86,6 +86,8 @@ def create_or_update_run(db: Session, status: PipelineRunStatus) -> PipelineRunR
         db.add(row)
         
     row.status = status.status
+    if status.user_id:
+        row.user_id = status.user_id
     row.current_step = status.current_step
     row.query = status.query
     row.steps_json = json.dumps(status.steps)

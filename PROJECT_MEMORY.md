@@ -121,10 +121,11 @@
     - `pytest backend/tests/integration/test_db_persistence.py -q`
 
 - 2026-08-14: Phase 7 implemented: React UI Frontend
-  - Built a minimal, clean React single-page application to drive the local research pipeline.
-  - Features robust state management (Zustand), dynamic multipage routing (React Router), and comprehensive backend integration via Axios services.
-  - Implemented `Home` (search input), `Results` (list & process PDFs), `Analysis` (mining & indexing controls), and `Dashboard` (view generated Markdown reports).
-  - Used standard Vite + Tailwind CSS for snappy performance.
+  - Built a clean, minimalist "Claude-like" single-page application to drive the local research pipeline.
+  - Features robust state management (Zustand with persistence), multipage routing (React Router), and comprehensive backend integration via Axios services.
+  - Implemented `Landing` (minimal CTA), `ChatDashboard` (main app shell with ChatComposer and ChatThread), and `RunViewer` (view historical reports).
+  - Used standard Vite + Tailwind CSS with a custom warm theme and dark mode toggling.
+  - Supported rendering rich markdown reports with syntax highlighting, tables, and copy-to-clipboard functionality.
   - Proof instructions:
     - `cd frontend`
     - `npm run dev`

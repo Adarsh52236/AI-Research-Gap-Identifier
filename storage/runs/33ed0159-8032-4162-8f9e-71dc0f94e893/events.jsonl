@@ -1,0 +1,4 @@
+{"ts": "2026-08-14T11:40:06.723559", "step": "search", "msg": "Searching for Retrieval Augmented Generation for edge devices"}
+{"ts": "2026-08-14T11:40:13.350318", "step": "search", "msg": "Found 2 papers"}
+{"ts": "2026-08-14T11:40:13.350318", "step": "download", "paper_id": "2506.06962v3", "error": "PDFDownloader.download_pdf() missing 4 required positional arguments: 'paper_id', 'source', 'title', and 'year'"}
+{"ts": "2026-08-14T11:40:13.350318", "step": "download", "paper_id": "2504.13684v1", "error": "PDFDownloader.download_pdf() missing 4 required positional arguments: 'paper_id', 'source', 'title', and 'year'"}

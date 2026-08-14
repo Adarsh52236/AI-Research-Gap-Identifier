@@ -25,9 +25,23 @@ An AI-powered pipeline to search, download, parse, and analyze scientific papers
 ## Windows Setup Instructions
 Run `scripts\setup.bat` to set up the environment.
 
-## How to run separately
+## How to run locally
 - Frontend: `cd frontend && npm run dev`
 - Backend: `cd backend && uvicorn app.main:app --reload`
+
+### UI Architecture & Endpoints
+The frontend is a "Claude-like" application mapping directly to the backend batch pipeline.
+- Start run: `POST /api/v1/analysis/pipeline-run/?async_run=true`
+- Poll status: `GET /api/v1/analysis/pipeline-run/{runId}`
+- View report: `GET /api/v1/analysis/pipeline-run/{runId}/report`
+- History: `GET /api/v1/analysis/runs` (Supports graceful DB fallback to local files).
+
+### Theme Tokens
+The frontend features a warm, paper-like theme built on CSS variables inside `frontend/src/styles/index.css`.
+- `--bg`: Main background color
+- `--panel`: Surface color for sidebars and composers
+- `--accent`: Core interactive color (terracotta/rust)
+- `--text`: Base text color
 
 ## Environment variables
 Check `.env.example` in both `frontend` and `backend` directories.

@@ -159,6 +159,7 @@ class GapReport(BaseModel):
 class GapReportRequest(BaseModel):
     paper_ids: list[str]
     query: Optional[str] = None
+    user_document_text: Optional[str] = None
     top_k_signals_per_paper: int = 20
     top_k_sections_from_vector_search: int = 5
     use_vector_search: bool = True
@@ -172,7 +173,9 @@ class GapReportResponse(BaseModel):
     report_md_path: Optional[str] = None
 
 class PipelineRunRequest(BaseModel):
+    run_id: Optional[str] = None
     query: str
+    user_document_text: Optional[str] = None
     limit: int = 30
     sources: list[str] = ["arxiv", "semantic_scholar"]
     year_from: Optional[int] = None
@@ -186,6 +189,7 @@ class PipelineRunRequest(BaseModel):
 
 class PipelineRunStatus(BaseModel):
     run_id: str
+    user_id: Optional[int] = None
     status: str
     current_step: Optional[str] = None
     started_at: str

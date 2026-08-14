@@ -1,36 +1,57 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
-const useAppStore = create((set) => ({
-  query: '',
-  setQuery: (query) => set({ query }),
+const useAppStore = create(
+  persist(
+    (set, get) => ({
+      ui: {
+        sidebarCollapsed: false,
+        theme: 'light',
+      },
+      setUI: (uiUpdates) => set((state) => ({ ui: { ...state.ui, ...uiUpdates } })),
+      
+      auth: {
+        token: null,
+        user: null,
+      },
+      login: (token, user) => set({ auth: { token, user } }),
+      logout: () => set({ auth: { token: null, user: null }, runs: [], messagesByRunId: {} }),
+      
+      runs: [],
+      setRuns: (runs) => set({ runs }),
+      addRun: (run) => set((state) => {
+        // Prevent duplicates
+        if (state.runs.find(r => r.run_id === run.run_id)) return state;
+        return { runs: [run, ...state.runs] };
+      }),
+      updateRun: (runId, updates) => set((state) => ({
+        runs: state.runs.map(r => r.run_id === runId ? { ...r, ...updates } : r)
+      })),
 
-  results: [],
-  setResults: (results) => set({ results }),
+      activeRunId: null,
+      setActiveRunId: (id) => set({ activeRunId: id }),
 
-  selectedPaperIds: [],
-  togglePaperSelection: (paperId) => set((state) => {
-    const isSelected = state.selectedPaperIds.includes(paperId);
-    if (isSelected) {
-      return { selectedPaperIds: state.selectedPaperIds.filter((id) => id !== paperId) };
-    } else {
-      return { selectedPaperIds: [...state.selectedPaperIds, paperId] };
+      messagesByRunId: {},
+      addMessage: (runId, message) => set((state) => ({
+        messagesByRunId: {
+          ...state.messagesByRunId,
+          [runId]: [...(state.messagesByRunId[runId] || []), message]
+        }
+      })),
+      updateMessage: (runId, messageId, content) => set((state) => {
+        const runMessages = state.messagesByRunId[runId] || [];
+        return {
+          messagesByRunId: {
+            ...state.messagesByRunId,
+            [runId]: runMessages.map(m => m.id === messageId ? { ...m, content } : m)
+          }
+        };
+      })
+    }),
+    {
+      name: 'research-gap-storage',
     }
-  }),
-  selectAllPapers: (paperIds) => set({ selectedPaperIds: paperIds }),
-  clearSelection: () => set({ selectedPaperIds: [] }),
-
-  downloads: {}, // paper_id -> local_path
-  setDownload: (paperId, localPath) => set((state) => ({
-    downloads: { ...state.downloads, [paperId]: localPath },
-  })),
-
-  extractions: {}, // paper_id -> sections_found
-  setExtraction: (paperId, sections) => set((state) => ({
-    extractions: { ...state.extractions, [paperId]: sections },
-  })),
-
-  report: null,
-  setReport: (reportData) => set({ report: reportData }),
-}));
+  )
+);
 
 export default useAppStore;

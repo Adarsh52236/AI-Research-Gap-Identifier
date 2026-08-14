@@ -112,7 +112,7 @@ class GapReportService:
         if not evidence_pool:
             raise HTTPException(status_code=404, detail="No evidence found for provided papers.")
             
-        messages = build_gap_report_messages(request.query, evidence_pool)
+        messages = build_gap_report_messages(request.query, evidence_pool, request.user_document_text)
         
         raw_json = await self.llm_client.generate_gap_report_json(messages)
         
