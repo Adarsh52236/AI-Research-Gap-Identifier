@@ -1,9 +1,22 @@
 """FastAPI app entry point."""
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.config import settings
+from backend.app.db.session import engine
+from backend.app.db.models import Base
 from backend.app.api.v1 import search, upload, analysis, report, health, papers
+
+
+# Initialize DB tables if DB is enabled
+if settings.DB_ENABLED and engine:
+    Base.metadata.create_all(bind=engine)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
 
 
 def _parse_origins(origins: str) -> list[str]:
@@ -11,13 +24,28 @@ def _parse_origins(origins: str) -> list[str]:
     return [o.strip() for o in origins.split(",") if o.strip()]
 
 
+from backend.app.middleware.error_handler import global_exception_handler
+from backend.app.middleware.request_id import RequestIdMiddleware
+from backend.app.middleware.rate_limiter import limiter
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+
 app = FastAPI(
     title="AI Research Gap Identifier API",
     version="0.1.0",
 )
 
-# TODO: Restrict origins later for production
-allowed_origins = ["*"] # _parse_origins(settings.ALLOWED_ORIGINS)
+# Exception handlers
+app.add_exception_handler(Exception, global_exception_handler)
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# Rate Limiter
+app.state.limiter = limiter
+
+# Middlewares (Order matters: outermost first)
+app.add_middleware(RequestIdMiddleware)
+
+allowed_origins = _parse_origins(settings.ALLOWED_ORIGINS)
 
 app.add_middleware(
     CORSMiddleware,

@@ -1,0 +1,23 @@
+{
+  "run_id": "ad986b74d6dd",
+  "status": "completed",
+  "current_step": null,
+  "started_at": "2026-08-13T21:09:58.392111",
+  "finished_at": "2026-08-13T21:09:58.405415",
+  "query": "KV cache optimization",
+  "steps": [
+    "search",
+    "download",
+    "extract",
+    "mine",
+    "index",
+    "report"
+  ],
+  "papers_found": 2,
+  "papers_downloaded": 2,
+  "papers_extracted": 0,
+  "papers_mined": 0,
+  "papers_indexed": 0,
+  "report_path": null,
+  "errors": []
+}

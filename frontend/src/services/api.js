@@ -1,5 +1,18 @@
 import axios from 'axios';
 
-// Axios base config
-const api = axios.create({});
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error('API Error:', error.response?.data || error.message);
+    return Promise.reject(error);
+  }
+);
+
 export default api;

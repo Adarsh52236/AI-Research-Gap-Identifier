@@ -1,7 +1,11 @@
 """Gap analysis endpoints."""
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Request, BackgroundTasks
+from backend.app.middleware.rate_limiter import limiter
+from backend.app.config import settings
+from backend.app.utils.logger import get_logger
 
 router = APIRouter()
+logger = get_logger(__name__)
 
 @router.post("/")
 async def analyze_gap():
@@ -71,6 +75,73 @@ from backend.app.core.gap_analyzer.gap_report_service import GapReportService
 gap_report_service = GapReportService()
 
 @router.post("/gap-report/", response_model=GapReportResponse)
-async def generate_gap_report(request: GapReportRequest):
-    """Generate an LLM-based Gap Report from evidence."""
-    return await gap_report_service.generate_report(request)
+@limiter.limit(settings.RATE_LIMIT_REPORT)
+async def generate_gap_report(request: Request, report_request: GapReportRequest):
+    """
+    Synthesize an LLM-based gap report from vector search excerpts and mined gap signals.
+    """
+    try:
+        return await gap_report_service.generate_report(report_request)
+    except Exception as e:
+        logger.error(f"Gap report generation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+from backend.app.db.schemas import PipelineRunRequest, PipelineRunStatus
+from backend.app.core.pipeline.pipeline_runner import PipelineRunner
+from backend.app.core.pipeline.run_store import RunStore
+import os
+
+pipeline_runner = PipelineRunner()
+run_store = RunStore()
+
+@router.post("/pipeline-run/", response_model=PipelineRunStatus)
+@limiter.limit(settings.RATE_LIMIT_PIPELINE)
+async def run_pipeline(request: Request, run_request: PipelineRunRequest, background_tasks: BackgroundTasks, async_run: bool = False):
+    """
+    Executes a multi-paper batch pipeline.
+    """
+    try:
+        if async_run:
+            import uuid
+            run_id = str(uuid.uuid4())
+            run_request.run_id = run_id
+            
+            # Fire and forget
+            background_tasks.add_task(pipeline_runner.run, run_request)
+            
+            from backend.app.db.schemas import PipelineStepStatus
+            initial_status = PipelineRunStatus(
+                run_id=run_id,
+                status=PipelineStepStatus.PENDING
+            )
+            return initial_status
+        else:
+            return await pipeline_runner.run(run_request)
+    except Exception as e:
+        logger.error(f"Pipeline run failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/pipeline-run/{run_id}", response_model=PipelineRunStatus)
+def get_pipeline_run(run_id: str):
+    """
+    Get the status of a pipeline run.
+    """
+    status = run_store.load_status(run_id)
+    if not status:
+        raise HTTPException(status_code=404, detail="Run ID not found")
+    return status
+
+@router.get("/pipeline-run/{run_id}/report")
+def get_pipeline_run_report(run_id: str):
+    """
+    Get the generated report content for a pipeline run.
+    """
+    status = run_store.load_status(run_id)
+    if not status:
+        raise HTTPException(status_code=404, detail="Run ID not found")
+        
+    if not status.report_path or not os.path.exists(status.report_path):
+        raise HTTPException(status_code=404, detail="Report not generated or not found")
+        
+    with open(status.report_path, "r", encoding="utf-8") as f:
+        return {"report_path": status.report_path, "content": f.read()}

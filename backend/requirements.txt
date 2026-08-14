@@ -16,3 +16,4 @@ pytest
 slowapi
 python-multipart
 pydantic-settings
+psycopg[binary]

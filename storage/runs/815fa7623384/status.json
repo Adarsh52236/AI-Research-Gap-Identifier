@@ -1,0 +1,26 @@
+{
+  "run_id": "815fa7623384",
+  "status": "completed",
+  "current_step": null,
+  "started_at": "2026-08-13T21:10:16.599225",
+  "finished_at": "2026-08-13T21:10:16.613230",
+  "query": "KV cache optimization",
+  "steps": [
+    "search",
+    "download",
+    "extract",
+    "mine",
+    "index",
+    "report"
+  ],
+  "papers_found": 2,
+  "papers_downloaded": 0,
+  "papers_extracted": 0,
+  "papers_mined": 0,
+  "papers_indexed": 0,
+  "report_path": null,
+  "errors": [
+    "Download failed for paper1: name 'Path' is not defined",
+    "Download failed for paper2: name 'Path' is not defined"
+  ]
+}

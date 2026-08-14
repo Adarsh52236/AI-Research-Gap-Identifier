@@ -1,0 +1,23 @@
+{
+  "run_id": "c2bae37fb846",
+  "status": "completed",
+  "current_step": null,
+  "started_at": "2026-08-13T21:11:31.055332",
+  "finished_at": "2026-08-13T21:11:36.219800",
+  "query": "KV cache optimization long context",
+  "steps": [
+    "search",
+    "download",
+    "extract",
+    "mine",
+    "index",
+    "report"
+  ],
+  "papers_found": 0,
+  "papers_downloaded": 0,
+  "papers_extracted": 0,
+  "papers_mined": 0,
+  "papers_indexed": 0,
+  "report_path": null,
+  "errors": []
+}

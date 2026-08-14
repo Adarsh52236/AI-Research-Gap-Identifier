@@ -9,7 +9,8 @@ GAP_PATTERNS = {
     "limitation": re.compile(r"\blimitation(s)?\b|\bconstraints?\b|\bshortcoming(s)?\b", re.IGNORECASE),
     "needs_improvement": re.compile(r"\bneeds? (further )?improvement\b|\bcan be improved\b|\bfurther work\b", re.IGNORECASE),
     "lack_of_data": re.compile(r"\black of\b|\binsufficient data\b|\bdata scarcity\b|\bno publicly available dataset\b", re.IGNORECASE),
-    "evaluation_gap": re.compile(r"\bnot evaluated\b|\bno evaluation\b|\blimited evaluation\b|\bneeds benchmarking\b", re.IGNORECASE)
+    "evaluation_gap": re.compile(r"\bnot evaluated\b|\bno evaluation\b|\blimited evaluation\b|\bneeds benchmarking\b", re.IGNORECASE),
+    "scalability_gap": re.compile(r"\bdoes not scale\b|\bscalability\b|\bscaling bottleneck\b", re.IGNORECASE)
 }
 
 def match_gap_patterns(sentence: str) -> list[tuple[str, str]]:

@@ -1,2 +1,5 @@
-"""Rate limiter."""
-# Rate limiting logic
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+
+# Initialize the global rate limiter keyed by client IP
+limiter = Limiter(key_func=get_remote_address)

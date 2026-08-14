@@ -21,7 +21,7 @@ def test_api_gap_signals(tmp_path, monkeypatch):
     with open(sections_path, "w", encoding="utf-8") as f:
         json.dump({
             "FUTURE WORK": "Future work needs to address these issues in larger models.",
-            "CONCLUSION": "This remains an open problem."
+            "CONCLUSION": "This remains an open problem that needs to be addressed in the future."
         }, f)
         
     response = client.post("/api/v1/analysis/gap-signals/", json={

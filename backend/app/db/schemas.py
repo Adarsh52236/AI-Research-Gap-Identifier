@@ -72,6 +72,8 @@ class GapSignal(BaseModel):
     sentence: str
     pattern: str
     score: float
+    quality_score: float = 1.0
+    is_noise: bool = False
     evidence: dict
 
 class MineGapSignalsRequest(BaseModel):
@@ -168,3 +170,32 @@ class GapReportResponse(BaseModel):
     report: GapReport
     report_json_path: Optional[str] = None
     report_md_path: Optional[str] = None
+
+class PipelineRunRequest(BaseModel):
+    query: str
+    limit: int = 30
+    sources: list[str] = ["arxiv", "semantic_scholar"]
+    year_from: Optional[int] = None
+    year_to: Optional[int] = None
+    steps: list[str] = ["search", "download", "extract", "mine", "index", "report"]
+    force_reindex: bool = False
+    force_report: bool = False
+    top_k_papers_for_report: int = 25
+    report_query: Optional[str] = None
+    save: bool = True
+
+class PipelineRunStatus(BaseModel):
+    run_id: str
+    status: str
+    current_step: Optional[str] = None
+    started_at: str
+    finished_at: Optional[str] = None
+    query: str
+    steps: list[str]
+    papers_found: int = 0
+    papers_downloaded: int = 0
+    papers_extracted: int = 0
+    papers_mined: int = 0
+    papers_indexed: int = 0
+    report_path: Optional[str] = None
+    errors: list[str] = Field(default_factory=list)

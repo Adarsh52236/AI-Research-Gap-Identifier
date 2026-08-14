@@ -1,26 +1,29 @@
 """Paper search endpoints."""
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from backend.app.db.schemas import SearchRequest, SearchResponse
 from backend.app.core.fetcher.fetcher_manager import FetcherManager
 from backend.app.utils.logger import get_logger
+from backend.app.middleware.rate_limiter import limiter
+from backend.app.config import settings
 
 router = APIRouter()
 logger = get_logger(__name__)
 fetcher_manager = FetcherManager()
 
 @router.post("/", response_model=SearchResponse)
-async def search_papers(request: SearchRequest):
+@limiter.limit(settings.RATE_LIMIT_SEARCH)
+async def search_papers(request: Request, search_request: SearchRequest):
     """Search papers endpoint."""
     try:
         results = await fetcher_manager.search_all(
-            query=request.query,
-            limit=request.limit,
-            sources=request.sources,
-            year_from=request.year_from,
-            year_to=request.year_to
+            query=search_request.query,
+            limit=search_request.limit,
+            sources=search_request.sources,
+            year_from=search_request.year_from,
+            year_to=search_request.year_to
         )
         return SearchResponse(
-            query=request.query,
+            query=search_request.query,
             count=len(results),
             results=results
         )

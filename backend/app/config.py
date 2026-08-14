@@ -1,14 +1,17 @@
 """All env/config settings."""
+import os
+from pathlib import Path
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
-load_dotenv("backend/.env")
+
+env_path = Path(__file__).parent.parent / ".env"
+load_dotenv(env_path)
 
 class Settings(BaseSettings):
-    ALLOWED_ORIGINS: str = "http://localhost:5173"
-    ALLOW_CREDENTIALS: bool = False
     STORAGE_DIR: str = "storage"
     DOWNLOADS_DIR: str = "storage/downloads"
     PROCESSED_DIR: str = "storage/processed"
+    RUNS_DIR: str = "storage/runs"
     CHROMA_DB_PATH: str = "storage/chromadb"
     CHROMA_COLLECTION_NAME: str = "papers_sections_v2"
     EMBEDDING_MODEL_NAME: str = "sentence-transformers/all-MiniLM-L6-v2"
@@ -27,5 +30,22 @@ class Settings(BaseSettings):
     GROQ_TIMEOUT_SECONDS: int = 60
     EVIDENCE_MAX_CHARS: int = 900
     REPORT_TOP_K_GAPS: int = 7
+    
+    # Database
+    DATABASE_URL: str | None = None
+    DB_ENABLED: bool = True
+    
+    # Deployment & Security
+    ALLOWED_ORIGINS: str = "http://localhost:5173"
+    ALLOW_CREDENTIALS: bool = False
+    LOG_LEVEL: str = "INFO"
+    
+    # Rate Limits
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_SEARCH: str = "30/minute"
+    RATE_LIMIT_DOWNLOAD: str = "10/minute"
+    RATE_LIMIT_EXTRACT: str = "10/minute"
+    RATE_LIMIT_PIPELINE: str = "3/minute"
+    RATE_LIMIT_REPORT: str = "6/minute"
 
 settings = Settings()

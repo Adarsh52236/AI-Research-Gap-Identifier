@@ -1,0 +1,21 @@
+{
+  "dataset_name": "kv_cache_eval_v1",
+  "labels": [
+    {
+      "paper_id": "example_id_123",
+      "signal_id": "sig_001",
+      "is_true_gap_statement": true,
+      "labeler": "human1",
+      "notes": "Clearly states a limitation in the existing literature."
+    }
+  ],
+  "report_labels": [
+    {
+      "run_id": "run_001",
+      "gap_id": "gap_1",
+      "is_grounded": true,
+      "is_useful": true,
+      "notes": "Good synthesis of the problem."
+    }
+  ]
+}

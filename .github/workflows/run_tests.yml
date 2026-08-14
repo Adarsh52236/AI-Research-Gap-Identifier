@@ -1,7 +1,30 @@
-name: Run Tests
-on: [push]
+name: Backend Tests
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
-      - run: echo 'Running tests'
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r backend/requirements.txt
+
+    - name: Run Pytest
+      env:
+        PYTHONPATH: .
+      run: |
+        pytest backend/tests -q
