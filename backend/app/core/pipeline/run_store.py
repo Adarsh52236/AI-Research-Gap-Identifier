@@ -170,7 +170,7 @@ class DBRunStore(RunStore):
             return None
         except Exception as e:
             logger.error(f"DBRunStore get_run failed for {run_id}: {e}")
-            return None
+            raise  # Do not return None on connection error to prevent 404s
         finally:
             db.close()
             

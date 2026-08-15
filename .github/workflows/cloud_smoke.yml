@@ -1,0 +1,28 @@
+name: Cloud Smoke Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Run cloud smoke test
+        env:
+          CLOUD_BACKEND_BASE_URL: ${{ secrets.CLOUD_BACKEND_BASE_URL }}
+          CLOUD_EMAIL: ${{ secrets.CLOUD_EMAIL }}
+          CLOUD_PASSWORD: ${{ secrets.CLOUD_PASSWORD }}
+        run: python backend/scripts/smoke_cloud.py

@@ -147,6 +147,9 @@ export default function ChatDashboard() {
             });
             return;
           }
+        } else if (err.response && [502, 503, 504].includes(err.response.status)) {
+          setLoadingText("Temporary backend issue; retrying...");
+          pollInterval = Math.min(pollInterval * 2, 15000); // Slow down significantly
         } else {
           networkErrorCount++;
           if (networkErrorCount > 5) {
@@ -154,7 +157,7 @@ export default function ChatDashboard() {
             addMessage(runId, {
               id: Date.now().toString(),
               role: 'assistant',
-              content: 'Backend may be sleeping; retry.',
+              content: 'Backend may be sleeping. Try again.',
               createdAt: new Date().toISOString()
             });
             return;
@@ -171,7 +174,7 @@ export default function ChatDashboard() {
 
   useEffect(() => {
     return () => {
-      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      if (pollIntervalRef.current) clearTimeout(pollIntervalRef.current);
     };
   }, []);
 
