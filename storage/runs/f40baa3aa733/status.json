@@ -1,0 +1,27 @@
+{
+  "run_id": "f40baa3aa733",
+  "user_id": 1,
+  "status": "completed",
+  "current_step": null,
+  "started_at": "2026-08-15T09:55:04.396452",
+  "finished_at": "2026-08-15T09:55:09.791645",
+  "query": "KV cache optimization",
+  "steps": [
+    "search",
+    "download",
+    "extract",
+    "mine",
+    "index",
+    "report"
+  ],
+  "papers_found": 2,
+  "papers_downloaded": 2,
+  "papers_extracted": 0,
+  "papers_mined": 0,
+  "papers_indexed": 0,
+  "report_path": null,
+  "errors": [
+    "Extract failed for paper1: 'NoneType' object has no attribute 'raw_text_path'",
+    "Extract failed for paper2: 'NoneType' object has no attribute 'raw_text_path'"
+  ]
+}

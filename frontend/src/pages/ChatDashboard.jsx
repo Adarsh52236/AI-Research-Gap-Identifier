@@ -3,6 +3,8 @@ import ChatThread from '../components/chat/ChatThread';
 import ChatComposer from '../components/chat/ChatComposer';
 import { runsService } from '../services/runsService';
 import useAppStore from '../store/useAppStore';
+import { DEBUG } from '../config/debug';
+import DebugPanel from '../components/common/DebugPanel';
 
 export default function ChatDashboard() {
   const { 
@@ -79,19 +81,28 @@ export default function ChatDashboard() {
   const startPolling = (runId) => {
     if (pollIntervalRef.current) clearTimeout(pollIntervalRef.current);
     
+    const pollSessionId = crypto.randomUUID();
     let pollInterval = 2000;
     const maxInterval = 10000;
     let notFoundCount = 0;
     let networkErrorCount = 0;
+    let consecutive502s = 0;
+    
+    if (DEBUG) console.log(`[POLL START] run_id=${runId}, pollSessionId=${pollSessionId}`);
     
     const poll = async () => {
       try {
+        if (DEBUG) console.log(`[POLL TICK] run_id=${runId}, pollSessionId=${pollSessionId}`);
         const statusRes = await runsService.getRunStatus(runId);
         // Reset counters on success
         notFoundCount = 0;
         networkErrorCount = 0;
+        consecutive502s = 0;
         
         updateRun(runId, statusRes);
+        useAppStore.getState().setDebugState({
+          lastPollStatus: { run_id: runId, status: statusRes.status, current_step: statusRes.current_step }
+        });
         
         if (statusRes.current_step) {
            setLoadingText(`Running step: ${statusRes.current_step}...`);
@@ -99,6 +110,8 @@ export default function ChatDashboard() {
 
         if (statusRes.status === 'completed' || statusRes.status === 'failed') {
           setIsRunning(false);
+          
+          if (DEBUG) console.log(`[POLL STOP] reason=${statusRes.status}`);
           
           if (statusRes.status === 'completed') {
              setLoadingText('Fetching report...');
@@ -134,11 +147,13 @@ export default function ChatDashboard() {
         pollIntervalRef.current = setTimeout(poll, pollInterval);
         
       } catch (err) {
-        console.error("Poll error", err);
+        if (DEBUG) console.error(`[POLL ERROR TICK] run_id=${runId}, pollSessionId=${pollSessionId}`, err);
+        
         if (err.response && err.response.status === 404) {
           notFoundCount++;
-          if (notFoundCount > 2) {
+          if (notFoundCount >= 2) {
             setIsRunning(false);
+            if (DEBUG) console.log(`[POLL STOP] reason=404_limit`);
             addMessage(runId, {
               id: Date.now().toString(),
               role: 'assistant',
@@ -148,12 +163,25 @@ export default function ChatDashboard() {
             return;
           }
         } else if (err.response && [502, 503, 504].includes(err.response.status)) {
+          consecutive502s++;
+          if (consecutive502s >= 5) {
+            setIsRunning(false);
+            if (DEBUG) console.log(`[POLL STOP] reason=502_limit`);
+            addMessage(runId, {
+              id: Date.now().toString(),
+              role: 'assistant',
+              content: 'Backend is unresponsive. Please try again later.',
+              createdAt: new Date().toISOString()
+            });
+            return;
+          }
           setLoadingText("Temporary backend issue; retrying...");
           pollInterval = Math.min(pollInterval * 2, 15000); // Slow down significantly
         } else {
           networkErrorCount++;
-          if (networkErrorCount > 5) {
+          if (networkErrorCount >= 5) {
             setIsRunning(false);
+            if (DEBUG) console.log(`[POLL STOP] reason=network_error_limit`);
             addMessage(runId, {
               id: Date.now().toString(),
               role: 'assistant',
@@ -174,7 +202,10 @@ export default function ChatDashboard() {
 
   useEffect(() => {
     return () => {
-      if (pollIntervalRef.current) clearTimeout(pollIntervalRef.current);
+      if (pollIntervalRef.current) {
+        if (DEBUG) console.log(`[POLL STOP] reason=unmounted`);
+        clearTimeout(pollIntervalRef.current);
+      }
     };
   }, []);
 
@@ -197,6 +228,7 @@ export default function ChatDashboard() {
       <div className="shrink-0 pt-2 pb-6 w-full max-w-3xl mx-auto bg-bg z-10 sticky bottom-0">
         <ChatComposer onSend={handleSend} isRunning={isRunning} />
       </div>
+      <DebugPanel />
     </div>
   );
 }

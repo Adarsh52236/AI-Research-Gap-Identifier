@@ -46,7 +46,16 @@ const useAppStore = create(
             [runId]: runMessages.map(m => m.id === messageId ? { ...m, content } : m)
           }
         };
-      })
+      }),
+      
+      debugState: {
+        lastRequest: null,
+        lastPollStatus: null,
+        lastError: null,
+      },
+      setDebugState: (updates) => set((state) => ({ 
+        debugState: { ...state.debugState, ...updates } 
+      }))
     }),
     {
       name: 'research-gap-storage',

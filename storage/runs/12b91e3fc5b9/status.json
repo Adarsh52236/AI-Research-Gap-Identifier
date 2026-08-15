@@ -1,0 +1,24 @@
+{
+  "run_id": "12b91e3fc5b9",
+  "user_id": 1,
+  "status": "completed",
+  "current_step": null,
+  "started_at": "2026-08-15T09:54:32.129159",
+  "finished_at": "2026-08-15T09:54:38.597915",
+  "query": "KV cache optimization",
+  "steps": [
+    "search",
+    "download",
+    "extract",
+    "mine",
+    "index",
+    "report"
+  ],
+  "papers_found": 2,
+  "papers_downloaded": 2,
+  "papers_extracted": 0,
+  "papers_mined": 0,
+  "papers_indexed": 0,
+  "report_path": null,
+  "errors": []
+}

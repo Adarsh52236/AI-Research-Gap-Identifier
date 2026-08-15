@@ -1,0 +1,4 @@
+{"ts": "2026-08-15T09:51:42.829669", "step": "search", "msg": "Searching for KV cache optimization"}
+{"ts": "2026-08-15T09:51:45.180707", "step": "search", "msg": "Found 2 papers"}
+{"ts": "2026-08-15T09:51:45.183312", "step": "download", "paper_id": "paper1", "error": "test_api_pipeline_run.<locals>.mock_download_pdf() missing 1 required positional argument: 'req'"}
+{"ts": "2026-08-15T09:51:45.183312", "step": "download", "paper_id": "paper2", "error": "test_api_pipeline_run.<locals>.mock_download_pdf() missing 1 required positional argument: 'req'"}

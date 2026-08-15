@@ -1,0 +1,26 @@
+{
+  "run_id": "32f088486822",
+  "user_id": 1,
+  "status": "failed",
+  "current_step": null,
+  "started_at": "2026-08-15T09:49:21.552009",
+  "finished_at": "2026-08-15T09:49:22.637147",
+  "query": "KV cache optimization",
+  "steps": [
+    "search",
+    "download",
+    "extract",
+    "mine",
+    "index",
+    "report"
+  ],
+  "papers_found": 0,
+  "papers_downloaded": 0,
+  "papers_extracted": 0,
+  "papers_mined": 0,
+  "papers_indexed": 0,
+  "report_path": null,
+  "errors": [
+    "Pipeline crashed: A research document (via upload or URL in chat) is compulsory for gap analysis. Please provide one."
+  ]
+}

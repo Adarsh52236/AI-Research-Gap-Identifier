@@ -1,0 +1,4 @@
+{"ts": "2026-08-15T09:55:05.909310", "step": "search", "msg": "Searching for KV cache optimization"}
+{"ts": "2026-08-15T09:55:07.522124", "step": "search", "msg": "Found 2 papers"}
+{"ts": "2026-08-15T09:55:09.784252", "step": "extract", "paper_id": "paper1", "error": "'NoneType' object has no attribute 'raw_text_path'"}
+{"ts": "2026-08-15T09:55:09.784857", "step": "extract", "paper_id": "paper2", "error": "'NoneType' object has no attribute 'raw_text_path'"}

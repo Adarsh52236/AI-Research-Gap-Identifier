@@ -64,3 +64,25 @@ Expected response:
   ...
 }
 ```
+
+## Client-Side Debugging (VITE_DEBUG)
+
+If the UI behaves unexpectedly and you need a deeper look at the network logs and polling lifecycle without combing through browser network tabs, you can enable our advanced client-side debugging toolkit.
+
+### Enabling in Vercel
+1. Go to your **Vercel Project Dashboard**.
+2. Navigate to **Settings** > **Environment Variables**.
+3. Add a new variable:
+   - Key: `VITE_DEBUG`
+   - Value: `true`
+4. **Important**: You must trigger a new deployment for Vercel to bake this variable into the Vite build.
+
+### Using the Debugger
+Once deployed, open the application in your browser and open the Developer Tools Console.
+
+- **Debug Panel:** A dark "DEBUG MODE" panel will appear anchored to the bottom of the screen. Clicking it reveals the exact backend URL the app is hitting, the last request details, active polling status, and formatted error messages.
+- **Console Logs:** You will see highly structured, collapsed log groups for every API interaction.
+  - `[API REQUEST] POST ...` shows the request payload, sanitized headers, and client request ID.
+  - `[API RESPONSE] 200 ...` shows the elapsed response time and backend tracing headers (e.g. `X-Request-ID`, `X-Render-Origin-Server`).
+  - `[API ERROR][HTTP_502]` explicitly categorizes backend failures vs CORS/Network drops, providing immediate context on *why* a failure occurred.
+  - `[POLL START]`, `[POLL TICK]`, and `[POLL STOP]` clearly log the lifecycle of long-running pipeline polls, ensuring duplicate background loops are visually apparent.

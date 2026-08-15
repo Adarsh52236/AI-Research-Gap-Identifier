@@ -1,0 +1,27 @@
+{
+  "run_id": "6f7969b871a8",
+  "user_id": 1,
+  "status": "completed",
+  "current_step": null,
+  "started_at": "2026-08-15T09:51:41.224597",
+  "finished_at": "2026-08-15T09:51:45.191306",
+  "query": "KV cache optimization",
+  "steps": [
+    "search",
+    "download",
+    "extract",
+    "mine",
+    "index",
+    "report"
+  ],
+  "papers_found": 2,
+  "papers_downloaded": 0,
+  "papers_extracted": 0,
+  "papers_mined": 0,
+  "papers_indexed": 0,
+  "report_path": null,
+  "errors": [
+    "Download failed for paper1: test_api_pipeline_run.<locals>.mock_download_pdf() missing 1 required positional argument: 'req'",
+    "Download failed for paper2: test_api_pipeline_run.<locals>.mock_download_pdf() missing 1 required positional argument: 'req'"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "run_id": "29316d45c224",
+  "user_id": 1,
+  "status": "completed",
+  "current_step": null,
+  "started_at": "2026-08-15T14:16:24.740956",
+  "finished_at": "2026-08-15T14:16:33.439887",
+  "query": "KV cache optimization",
+  "steps": [
+    "search",
+    "download",
+    "extract",
+    "mine",
+    "index",
+    "report"
+  ],
+  "papers_found": 2,
+  "papers_downloaded": 2,
+  "papers_extracted": 2,
+  "papers_mined": 2,
+  "papers_indexed": 2,
+  "report_path": "C:\\Users\\adars\\AppData\\Local\\Temp\\pytest-of-adars\\pytest-41\\test_api_pipeline_run0\\storage\\report.md",
+  "errors": []
+}

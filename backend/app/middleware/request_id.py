@@ -2,6 +2,7 @@ import uuid
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response
+from backend.app.config import settings
 
 class RequestIdMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
@@ -14,4 +15,6 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
         
         response = await call_next(request)
         response.headers["X-Request-ID"] = req_id
+        response.headers["X-Service"] = "AI-Research-Gap-Identifier"
+        response.headers["X-Env"] = getattr(settings, 'ENVIRONMENT', 'development')
         return response
