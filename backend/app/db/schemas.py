@@ -153,6 +153,7 @@ class GapReport(BaseModel):
     created_at: str
     model: str
     paper_ids: list[str]
+    user_document_critique: Optional[str] = None
     gaps: list[GapCandidate]
     notes: Optional[str] = None
 
@@ -176,7 +177,7 @@ class PipelineRunRequest(BaseModel):
     run_id: Optional[str] = None
     query: str
     user_document_text: Optional[str] = None
-    limit: int = 30
+    limit: int = 5
     sources: list[str] = ["arxiv", "semantic_scholar"]
     year_from: Optional[int] = None
     year_to: Optional[int] = None
@@ -203,3 +204,40 @@ class PipelineRunStatus(BaseModel):
     papers_indexed: int = 0
     report_path: Optional[str] = None
     errors: list[str] = Field(default_factory=list)
+
+class ReviewAnnotateRequest(BaseModel):
+    prompt: Optional[str] = None
+    compare_papers_limit: int = 0
+    annotations_target: int = 12
+    style_guide: Optional[str] = None
+    strict_no_hallucination: bool = True
+
+class ReviewAnnotateResponse(BaseModel):
+    status: str
+    review_run_id: str
+    input_pdf_path: str
+    annotated_pdf_path: str
+    issues_count: int
+    dropped_count: int
+    notes: Optional[str] = None
+
+class ReviewEvidence(BaseModel):
+    evidence_id: str
+    page_hint: Optional[int] = None
+    anchor_phrase: str
+    quote: str
+    section: Optional[str] = None
+
+class ReviewIssue(BaseModel):
+    issue_id: str
+    severity: str
+    issue: str
+    solution: str
+    evidence: ReviewEvidence
+    issue_type: str
+
+class ReviewLLMOutput(BaseModel):
+    issues: list[ReviewIssue]
+    overall_issues: list[str]
+    overall_solutions: list[str]
+

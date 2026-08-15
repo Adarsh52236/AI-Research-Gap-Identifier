@@ -178,4 +178,16 @@ To successfully finish the research paper for publication, complete the followin
 - Implemented Groq-based gap report generation with strict evidence-id citations and validation.
 - End-to-end pipeline now supports: search → download → extract → gap signals → embeddings → similarity excerpts → Groq gap report (JSON + Markdown).
 - Verified on real ArXiv paper; report saved under storage/reports/.
+
+### 2026-08-15 — Phase 6 completed (Annotated Peer-Review PDF Generator)
+- Annotated peer-review PDF generator added. Uses Groq for JSON-based review and PyMuPDF to draw red boxes, routing arrows, and text margin boxes on exact text anchors.
+- Added EvidenceValidator to enforce strict no-hallucination bounds.
+- Endpoints:
+  POST /api/v1/review/annotate/
+  GET  /api/v1/review/download/{review_run_id}
+- How to run manual script:
+  python backend/scripts/manual_review_annotate_test.py <path>
+- Testing:
+  pytest backend/tests -q
+- Updated Claude-like React frontend with `/app/review` route.
 Next agenda: Final Polish.

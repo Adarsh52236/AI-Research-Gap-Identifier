@@ -23,6 +23,7 @@ SCHEMA EXPECTED:
   "created_at": <iso timestamp>,
   "model": <model name>,
   "paper_ids": [<list of paper ids>],
+  "user_document_critique": "<detailed critique comparing the user's document to the SOTA evidence. Identify specific missing methodologies, flaws, or gaps in the user's document>",
   "gaps": [
     {
       "gap_id": "<unique short id>",

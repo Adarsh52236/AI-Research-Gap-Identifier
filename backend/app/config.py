@@ -48,4 +48,12 @@ class Settings(BaseSettings):
     RATE_LIMIT_PIPELINE: str = "3/minute"
     RATE_LIMIT_REPORT: str = "6/minute"
 
+    # Phase 6: Reviewer
+    UPLOADS_DIR: str = "storage/uploads"
+    REVIEW_REPORTS_DIR: str = "storage/reports"
+    REVIEW_MAX_PAGES_SCAN: int = 40
+    REVIEW_MARGIN_RATIO: float = 0.25
+    REVIEW_MAX_ISSUES: int = 15
+    REVIEW_MIN_ISSUES: int = 8
+
 settings = Settings()

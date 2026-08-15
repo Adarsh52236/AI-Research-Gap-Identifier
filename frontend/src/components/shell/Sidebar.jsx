@@ -44,6 +44,22 @@ export default function Sidebar() {
         </button>
       </div>
 
+      {/* Review PDF */}
+      <div className="px-2 pb-2 border-b border-border">
+        <NavLink 
+          to="/app/review"
+          className={({ isActive }) => clsx(
+            "flex items-center justify-center w-full gap-2 p-2 rounded-xl transition-colors",
+            isActive ? "bg-accent/20 text-accent" : "bg-transparent text-text hover:bg-border",
+            collapsed && "px-0"
+          )}
+          title="Review PDF"
+        >
+          <FileText size={20} />
+          {!collapsed && <span>Review PDF</span>}
+        </NavLink>
+      </div>
+
       {/* History */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {!collapsed && <div className="text-xs font-medium text-muted px-2 py-2 uppercase tracking-wider">Recent</div>}

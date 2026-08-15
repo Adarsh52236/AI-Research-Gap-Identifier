@@ -37,6 +37,10 @@ class GapReportService:
         if report.notes:
             md += f"> **Notes:** {report.notes}\n\n"
             
+        if report.user_document_critique:
+            md += f"## Comparison to User Document\n"
+            md += f"{report.user_document_critique}\n\n"
+            
         md += f"## Identified Gaps ({len(report.gaps)})\n\n"
         
         for i, gap in enumerate(report.gaps, 1):

@@ -15,10 +15,12 @@ from backend.app.core.extractor.extraction_service import ExtractionService
 from backend.app.core.gap_analyzer.gap_signal_service import GapSignalService
 from backend.app.core.embeddings.indexing_service import EmbeddingIndexingService
 from backend.app.core.gap_analyzer.gap_report_service import GapReportService
+from backend.app.core.gap_analyzer.groq_client import GroqLLMClient
 from backend.app.db.session import SessionLocal
 from backend.app.db import crud
 import os
 from backend.app.utils.logger import get_logger
+from backend.app.utils.file_utils import safe_filename
 
 logger = get_logger(__name__)
 
@@ -31,6 +33,7 @@ class PipelineRunner:
         self.miner = GapSignalService()
         self.indexer = EmbeddingIndexingService()
         self.report_generator = GapReportService()
+        self.llm_client = GroqLLMClient()
 
     async def run(self, request: PipelineRunRequest, user_id: int | None = None) -> PipelineRunStatus:
         timestamp = str(time.time())
@@ -56,6 +59,36 @@ class PipelineRunner:
         papers_to_process = []
         
         try:
+            # 0. Preprocess
+            status.current_step = "preprocess"
+            self.run_store.save_status(run_id, status)
+            
+            parsed_prompt = await self.llm_client.parse_user_prompt_json(request.query, request.user_document_text)
+            
+            if parsed_prompt.get("extracted_url") and not request.user_document_text:
+                self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "preprocess", "msg": "Extracting text from URL: " + parsed_prompt["extracted_url"]})
+                dl_res = await self.downloader.download_pdf(
+                    pdf_url=parsed_prompt["extracted_url"],
+                    paper_id="user_url_doc",
+                    source="user",
+                    title="User Provided URL",
+                    year=None
+                )
+                ex_res = self.extractor.extract_and_process(
+                    local_pdf_path=Path(dl_res.local_path),
+                    paper_id="user_url_doc",
+                    parse_sections=False
+                )
+                with open(ex_res.raw_text_path, "r", encoding="utf-8") as f:
+                    request.user_document_text = f.read()
+                    
+            if not request.user_document_text or len(request.user_document_text.strip()) < 50:
+                raise Exception("A research document (via upload or URL in chat) is compulsory for gap analysis. Please provide one.")
+                
+            optimized = parsed_prompt.get("optimized_query")
+            if optimized and optimized.strip():
+                request.query = optimized.strip()
+            
             # 1. Search
             if "search" in request.steps:
                 status.current_step = "search"
@@ -101,19 +134,20 @@ class PipelineRunner:
                         continue
                     
                     try:
-                        expected_pdf = Path(settings.DOWNLOADS_DIR) / p.source / f"{p.paper_id}.pdf"
+                        source_dir = safe_filename(p.source) if p.source else "unknown"
+                        year_dir = str(p.year) if p.year else "unknown"
+                        expected_pdf = Path(settings.DOWNLOADS_DIR) / source_dir / year_dir / f"{safe_filename(p.paper_id)}.pdf"
                         if expected_pdf.exists():
                             self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "download", "paper_id": p.paper_id, "msg": "Skipped (already exists)"})
                             status.papers_downloaded += 1
                         else:
-                            dl_req = DownloadPaperRequest(
+                            await self.downloader.download_pdf(
                                 pdf_url=p.pdf_url,
                                 paper_id=p.paper_id,
                                 source=p.source,
                                 title=p.title,
                                 year=p.year
                             )
-                            await self.downloader.download_pdf(dl_req)
                             status.papers_downloaded += 1
                         valid_paper_ids.append(p.paper_id)
                     except Exception as e:
@@ -131,7 +165,9 @@ class PipelineRunner:
                     if p.paper_id not in valid_paper_ids:
                         continue
                     try:
-                        expected_pdf = Path(settings.DOWNLOADS_DIR) / p.source / f"{p.paper_id}.pdf"
+                        source_dir = safe_filename(p.source) if p.source else "unknown"
+                        year_dir = str(p.year) if p.year else "unknown"
+                        expected_pdf = Path(settings.DOWNLOADS_DIR) / source_dir / year_dir / f"{safe_filename(p.paper_id)}.pdf"
                         expected_sections = Path(settings.PROCESSED_DIR) / p.paper_id / "sections.json"
                         if expected_sections.exists():
                             self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "extract", "paper_id": p.paper_id, "msg": "Skipped (already exists)"})
@@ -139,13 +175,11 @@ class PipelineRunner:
                             extracted_ids.append(p.paper_id)
                         else:
                             if expected_pdf.exists():
-                                ex_req = ExtractPaperRequest(
-                                    local_path=str(expected_pdf),
+                                self.extractor.extract_and_process(
+                                    local_pdf_path=expected_pdf,
                                     paper_id=p.paper_id,
-                                    source=p.source,
-                                    year=p.year
+                                    parse_sections=True
                                 )
-                                self.extractor.extract_and_process(ex_req)
                                 status.papers_extracted += 1
                                 extracted_ids.append(p.paper_id)
                     except Exception as e:
@@ -168,17 +202,20 @@ class PipelineRunner:
                             status.papers_mined += 1
                             mined_ids.append(pid)
                         else:
-                            mine_req = MineGapSignalsRequest(
+                            self.miner.process_mining_request(
                                 paper_ids=[pid],
-                                top_k=30
+                                processed_sections_paths=None,
+                                top_k=30,
+                                include_sections=None,
+                                save=request.save
                             )
-                            self.miner.process_mining_request(mine_req)
                             status.papers_mined += 1
                             mined_ids.append(pid)
                     except Exception as e:
                         err = f"Mine failed for {pid}: {str(e)}"
                         status.errors.append(err)
                         self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "mine", "paper_id": pid, "error": str(e)})
+                
                 valid_paper_ids = mined_ids
                 self.run_store.save_status(run_id, status)
 
@@ -188,11 +225,13 @@ class PipelineRunner:
                 self.run_store.save_status(run_id, status)
                 for pid in valid_paper_ids:
                     try:
-                        idx_req = IndexEmbeddingsRequest(
+                        res = self.indexer.index_paper_ids(
                             paper_ids=[pid],
-                            force_reindex=request.force_reindex
+                            processed_sections_paths=None,
+                            sections_to_index=["ABSTRACT", "INTRODUCTION", "METHODS", "RESULTS", "DISCUSSION", "CONCLUSION"],
+                            force_reindex=request.force_reindex,
+                            save_text=True
                         )
-                        res = self.indexer.index_paper_ids(idx_req)
                         # We don't have a way to know if it skipped from the res exactly unless we check skipped_count
                         if res.indexed_count > 0 or res.skipped_count > 0:
                             status.papers_indexed += 1
@@ -218,9 +257,9 @@ class PipelineRunner:
                     # So we'll just run it. We can't skip it cleanly. Let's just run it.
                     try:
                         rep_req = GapReportRequest(
-                            paper_ids=valid_paper_ids[:request.top_k_papers_for_report],
-                            query=request.report_query or request.query,
-                            user_document_text=request.user_document_text,
+                            paper_ids=valid_paper_ids[:request.top_k_papers_for_report] if hasattr(request, 'top_k_papers_for_report') else valid_paper_ids,
+                            query=request.query,
+                            user_document_text=request.user_document_text[:4000] if request.user_document_text else None,
                             save_report=True
                         )
                         rep_res = await self.report_generator.generate_report(rep_req)
@@ -229,7 +268,10 @@ class PipelineRunner:
                     except Exception as e:
                         err = f"Report generation failed: {str(e)}"
                         status.errors.append(err)
+                        status.status = "failed"
                         self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "report", "error": str(e)})
+                        self.run_store.save_status(run_id, status)
+                        return status
                 
             # Finish
             if len(status.errors) > len(papers_to_process) and len(papers_to_process) > 0:
