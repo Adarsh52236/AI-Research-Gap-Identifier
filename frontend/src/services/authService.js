@@ -2,15 +2,7 @@ import api from './api';
 
 export const authService = {
   login: async (username, password) => {
-    // FastAPI OAuth2 requires form data
-    const formData = new URLSearchParams();
-    formData.append('username', username);
-    formData.append('password', password);
-    const response = await api.post('/api/v1/auth/login', formData, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      }
-    });
+    const response = await api.post('/api/v1/auth/login-json', { username, password });
     return response.data;
   },
 

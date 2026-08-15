@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from backend.app.db.models import User
 from backend.app.core.deps import get_db, get_current_user
-from backend.app.core.auth_utils import verify_password, get_password_hash, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
+from backend.app.core.auth_utils import verify_password_safe, password_too_long, get_password_hash, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -12,6 +12,10 @@ router = APIRouter()
 class UserCreate(BaseModel):
     username: str
     email: str = None
+    password: str
+
+class LoginRequest(BaseModel):
+    username: str
     password: str
 
 class Token(BaseModel):
@@ -39,6 +43,12 @@ def signup(user_in: UserCreate, db: Session = Depends(get_db)):
                 detail="The user with this email already exists in the system.",
             )
 
+    if password_too_long(user_in.password):
+        raise HTTPException(
+            status_code=400,
+            detail="Password too long (max 72 bytes)."
+        )
+
     user = User(
         username=user_in.username,
         email=user_in.email,
@@ -51,9 +61,27 @@ def signup(user_in: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=Token)
 def login_access_token(db: Session = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()):
+    if password_too_long(form_data.password):
+        raise HTTPException(status_code=400, detail="Password too long (max 72 bytes).")
+    
     user = db.query(User).filter(User.username == form_data.username).first()
-    if not user or not verify_password(form_data.password, user.hashed_password):
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    if not user or not verify_password_safe(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
+    
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.post("/login-json", response_model=Token)
+def login_json(payload: LoginRequest, db: Session = Depends(get_db)):
+    if password_too_long(payload.password):
+        raise HTTPException(status_code=400, detail="Password too long (max 72 bytes).")
+    
+    user = db.query(User).filter(User.username == payload.username).first()
+    if not user or not verify_password_safe(payload.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(

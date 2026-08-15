@@ -13,6 +13,13 @@ try:
         class About:
             __version__ = bcrypt.__version__
         bcrypt.__about__ = About
+    
+    # Monkeypatch bcrypt.hashpw to prevent passlib's 255-byte self-test from crashing
+    # bcrypt >= 4.0.0. User passwords > 72 bytes are already blocked by the API.
+    _original_hashpw = bcrypt.hashpw
+    def _safe_hashpw(password, salt):
+        return _original_hashpw(password[:72], salt)
+    bcrypt.hashpw = _safe_hashpw
 except ImportError:
     pass
 
@@ -22,11 +29,19 @@ SECRET_KEY = "supersecretkey_change_in_production"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password[:72], hashed_password)
+def password_too_long(password: str) -> bool:
+    return len(password.encode("utf-8")) > 72
+
+def verify_password_safe(plain_password, hashed_password):
+    try:
+        if password_too_long(plain_password):
+            return False
+        return pwd_context.verify(plain_password, hashed_password)
+    except ValueError:
+        return False
 
 def get_password_hash(password):
-    return pwd_context.hash(password[:72])
+    return pwd_context.hash(password)
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode = data.copy()
