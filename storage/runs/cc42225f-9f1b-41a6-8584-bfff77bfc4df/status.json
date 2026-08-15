@@ -1,0 +1,24 @@
+{
+  "run_id": "cc42225f-9f1b-41a6-8584-bfff77bfc4df",
+  "user_id": null,
+  "status": "completed",
+  "current_step": null,
+  "started_at": "2026-08-14T12:20:03.864272",
+  "finished_at": "2026-08-14T12:21:10.957208",
+  "query": "AI in healthcare 2025",
+  "steps": [
+    "search",
+    "download",
+    "extract",
+    "mine",
+    "index",
+    "report"
+  ],
+  "papers_found": 5,
+  "papers_downloaded": 5,
+  "papers_extracted": 0,
+  "papers_mined": 0,
+  "papers_indexed": 0,
+  "report_path": null,
+  "errors": []
+}

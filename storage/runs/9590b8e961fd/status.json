@@ -1,0 +1,24 @@
+{
+  "run_id": "9590b8e961fd",
+  "user_id": null,
+  "status": "completed",
+  "current_step": null,
+  "started_at": "2026-08-14T12:48:28.667803",
+  "finished_at": "2026-08-14T12:48:35.568658",
+  "query": "Analyze this paper: https://arxiv.org/pdf/2003.07678v3.pdf",
+  "steps": [
+    "search",
+    "download",
+    "extract",
+    "mine",
+    "index",
+    "report"
+  ],
+  "papers_found": 0,
+  "papers_downloaded": 0,
+  "papers_extracted": 0,
+  "papers_mined": 0,
+  "papers_indexed": 0,
+  "report_path": null,
+  "errors": []
+}

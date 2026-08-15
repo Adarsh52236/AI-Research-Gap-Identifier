@@ -1,0 +1,30 @@
+{
+  "run_id": "ec6887e6-5c7b-47d0-b85a-fa7ae5475f32",
+  "user_id": null,
+  "status": "completed",
+  "current_step": null,
+  "started_at": "2026-08-14T12:10:56.770195",
+  "finished_at": "2026-08-14T12:11:04.085704",
+  "query": "Ai in healthcare",
+  "steps": [
+    "search",
+    "download",
+    "extract",
+    "mine",
+    "index",
+    "report"
+  ],
+  "papers_found": 5,
+  "papers_downloaded": 0,
+  "papers_extracted": 0,
+  "papers_mined": 0,
+  "papers_indexed": 0,
+  "report_path": null,
+  "errors": [
+    "Download failed for 2003.07678v3: PDFDownloader.download_pdf() missing 4 required positional arguments: 'paper_id', 'source', 'title', and 'year'",
+    "Download failed for 2603.28944v2: PDFDownloader.download_pdf() missing 4 required positional arguments: 'paper_id', 'source', 'title', and 'year'",
+    "Download failed for 2501.02842v1: PDFDownloader.download_pdf() missing 4 required positional arguments: 'paper_id', 'source', 'title', and 'year'",
+    "Download failed for 2601.16513v1: PDFDownloader.download_pdf() missing 4 required positional arguments: 'paper_id', 'source', 'title', and 'year'",
+    "Download failed for 2603.17419v1: PDFDownloader.download_pdf() missing 4 required positional arguments: 'paper_id', 'source', 'title', and 'year'"
+  ]
+}

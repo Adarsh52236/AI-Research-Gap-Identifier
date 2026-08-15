@@ -1,0 +1,7 @@
+{"ts": "2026-08-14T12:28:25.244157", "step": "search", "msg": "Searching for AI in healthcare"}
+{"ts": "2026-08-14T12:28:29.822493", "step": "search", "msg": "Found 5 papers"}
+{"ts": "2026-08-14T12:28:29.834715", "step": "download", "paper_id": "2003.07678v3", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:28:29.835411", "step": "download", "paper_id": "2603.28944v2", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:28:29.836857", "step": "download", "paper_id": "2501.02842v1", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:28:36.236179", "step": "extract", "paper_id": "2003.07678v3", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:29:25.124885", "step": "report", "msg": "Report generated"}

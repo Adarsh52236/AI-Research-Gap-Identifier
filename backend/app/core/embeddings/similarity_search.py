@@ -1,12 +1,12 @@
 """Similarity Search Service."""
 from backend.app.db.schemas import SimilaritySearchResponse, SimilarityMatch
 from backend.app.core.embeddings.embedding_generator import get_embedding_generator
-from backend.app.core.embeddings.vector_store import ChromaVectorStore
+from backend.app.core.embeddings.vector_store import get_vector_store
 
 class SimilaritySearchService:
     def __init__(self):
         self.generator = get_embedding_generator()
-        self.store = ChromaVectorStore()
+        self.store = get_vector_store()
         
     def search(self, query_text: str, top_k: int, filter_source: str | None, 
                filter_year_from: int | None, filter_year_to: int | None, 

@@ -1,0 +1,24 @@
+{
+  "run_id": "eab1edc42feb",
+  "user_id": null,
+  "status": "completed",
+  "current_step": null,
+  "started_at": "2026-08-15T08:49:41.133321",
+  "finished_at": "2026-08-15T08:50:17.324116",
+  "query": "Self supervised learning in computer vision",
+  "steps": [
+    "search",
+    "download",
+    "extract",
+    "mine",
+    "index",
+    "report"
+  ],
+  "papers_found": 1,
+  "papers_downloaded": 1,
+  "papers_extracted": 1,
+  "papers_mined": 1,
+  "papers_indexed": 1,
+  "report_path": null,
+  "errors": []
+}

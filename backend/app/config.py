@@ -40,6 +40,14 @@ class Settings(BaseSettings):
     ALLOW_CREDENTIALS: bool = False
     LOG_LEVEL: str = "INFO"
     
+    # Backends
+    VECTOR_BACKEND: str = "chroma"  # chroma or pgvector
+    ARTIFACT_BACKEND: str = "local"  # local or supabase
+    
+    # Supabase (for pgvector / artifact storage)
+    SUPABASE_URL: str | None = None
+    SUPABASE_SERVICE_ROLE_KEY: str | None = None
+    
     # Rate Limits
     RATE_LIMIT_ENABLED: bool = True
     RATE_LIMIT_SEARCH: str = "30/minute"

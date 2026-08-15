@@ -1,0 +1,24 @@
+{
+  "run_id": "8c868398-523f-44a2-bb7e-16640828b599",
+  "user_id": null,
+  "status": "completed",
+  "current_step": null,
+  "started_at": "2026-08-14T12:59:33.431278",
+  "finished_at": "2026-08-14T13:00:05.362284",
+  "query": "Smart Predictive and Diagnostic Healthcare Analytics Platform",
+  "steps": [
+    "search",
+    "download",
+    "extract",
+    "mine",
+    "index",
+    "report"
+  ],
+  "papers_found": 5,
+  "papers_downloaded": 5,
+  "papers_extracted": 5,
+  "papers_mined": 5,
+  "papers_indexed": 5,
+  "report_path": "storage/reports/1786712405_gap_report.md",
+  "errors": []
+}

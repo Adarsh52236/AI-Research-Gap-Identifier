@@ -2,7 +2,7 @@ fastapi
 uvicorn
 python-dotenv
 sqlalchemy
-supabase
+supabase>=2.3.0
 chromadb
 groq
 sentence-transformers
@@ -16,7 +16,8 @@ pytest
 slowapi
 python-multipart
 pydantic-settings
-psycopg[binary]
+psycopg[binary]>=3.1.0
 PyJWT
 passlib
 bcrypt
+pgvector>=0.2.0

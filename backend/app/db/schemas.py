@@ -41,6 +41,7 @@ class DownloadPaperResponse(BaseModel):
     paper_id: str
     source: Optional[str] = None
     local_path: str
+    storage_path: Optional[str] = None
     sha256: str
     size_bytes: int
     content_type: Optional[str] = None
@@ -59,6 +60,7 @@ class ExtractPaperResponse(BaseModel):
     local_pdf_path: str
     raw_text_path: str
     sections_path: Optional[str] = None
+    storage_path: Optional[str] = None
     extracted_chars: int
     sections_found: list[str]
 
@@ -172,6 +174,7 @@ class GapReportResponse(BaseModel):
     report: GapReport
     report_json_path: Optional[str] = None
     report_md_path: Optional[str] = None
+    storage_path: Optional[str] = None
 
 class PipelineRunRequest(BaseModel):
     run_id: Optional[str] = None

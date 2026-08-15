@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from backend.app.config import settings
 from backend.app.db.schemas import IndexEmbeddingsResponse
 from backend.app.core.embeddings.embedding_generator import get_embedding_generator
-from backend.app.core.embeddings.vector_store import ChromaVectorStore
+from backend.app.core.embeddings.vector_store import get_vector_store
 from backend.app.utils.file_utils import safe_resolve_under
 from backend.app.utils.logger import get_logger
 
@@ -15,7 +15,7 @@ logger = get_logger(__name__)
 class EmbeddingIndexingService:
     def __init__(self):
         self.generator = get_embedding_generator()
-        self.store = ChromaVectorStore()
+        self.store = get_vector_store()
         
     def _is_high_quality(self, text: str) -> bool:
         if len(text) < 200:

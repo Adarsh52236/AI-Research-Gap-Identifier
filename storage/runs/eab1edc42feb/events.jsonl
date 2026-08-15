@@ -1,0 +1,4 @@
+{"ts": "2026-08-15T08:49:45.782290", "step": "search", "msg": "Searching for self-supervised computer vision"}
+{"ts": "2026-08-15T08:49:47.568790", "step": "search", "msg": "Found 1 papers"}
+{"ts": "2026-08-15T08:49:47.570533", "step": "download", "paper_id": "1909.10225v1", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-15T08:49:47.572635", "step": "extract", "paper_id": "1909.10225v1", "msg": "Skipped (already exists)"}

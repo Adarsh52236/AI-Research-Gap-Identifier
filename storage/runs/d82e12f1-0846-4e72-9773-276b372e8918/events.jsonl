@@ -1,0 +1,18 @@
+{"ts": "2026-08-14T12:31:09.296784", "step": "search", "msg": "Searching for AI in healthcare"}
+{"ts": "2026-08-14T12:31:13.366174", "step": "search", "msg": "Found 5 papers"}
+{"ts": "2026-08-14T12:31:13.371136", "step": "download", "paper_id": "2003.07678v3", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:31:13.372147", "step": "download", "paper_id": "2603.28944v2", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:31:13.372147", "step": "download", "paper_id": "2501.02842v1", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:31:13.372147", "step": "download", "paper_id": "2601.16513v1", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:31:13.374406", "step": "download", "paper_id": "2303.15563v1", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:31:13.379607", "step": "extract", "paper_id": "2003.07678v3", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:31:13.379607", "step": "extract", "paper_id": "2603.28944v2", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:31:13.379607", "step": "extract", "paper_id": "2501.02842v1", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:31:13.382119", "step": "extract", "paper_id": "2601.16513v1", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:31:13.383227", "step": "extract", "paper_id": "2303.15563v1", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:31:13.384326", "step": "mine", "paper_id": "2003.07678v3", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:31:13.387331", "step": "mine", "paper_id": "2603.28944v2", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:31:13.388301", "step": "mine", "paper_id": "2501.02842v1", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:31:13.388301", "step": "mine", "paper_id": "2601.16513v1", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:31:13.388301", "step": "mine", "paper_id": "2303.15563v1", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:31:16.837658", "step": "report", "msg": "Report generated"}

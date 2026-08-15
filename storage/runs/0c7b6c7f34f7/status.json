@@ -1,0 +1,26 @@
+{
+  "run_id": "0c7b6c7f34f7",
+  "user_id": null,
+  "status": "failed",
+  "current_step": null,
+  "started_at": "2026-08-15T08:48:37.427438",
+  "finished_at": "2026-08-15T08:48:40.907245",
+  "query": "Self supervised learning in computer vision",
+  "steps": [
+    "search",
+    "download",
+    "extract",
+    "mine",
+    "index",
+    "report"
+  ],
+  "papers_found": 0,
+  "papers_downloaded": 0,
+  "papers_extracted": 0,
+  "papers_mined": 0,
+  "papers_indexed": 0,
+  "report_path": null,
+  "errors": [
+    "Pipeline crashed: A research document (via upload or URL in chat) is compulsory for gap analysis. Please provide one."
+  ]
+}

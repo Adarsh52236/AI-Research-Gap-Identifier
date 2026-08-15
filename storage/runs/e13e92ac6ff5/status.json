@@ -1,0 +1,26 @@
+{
+  "run_id": "e13e92ac6ff5",
+  "user_id": null,
+  "status": "failed",
+  "current_step": null,
+  "started_at": "2026-08-15T08:49:11.548865",
+  "finished_at": "2026-08-15T08:49:23.881859",
+  "query": "Self supervised learning in computer vision",
+  "steps": [
+    "search",
+    "download",
+    "extract",
+    "mine",
+    "index",
+    "report"
+  ],
+  "papers_found": 1,
+  "papers_downloaded": 1,
+  "papers_extracted": 1,
+  "papers_mined": 0,
+  "papers_indexed": 0,
+  "report_path": null,
+  "errors": [
+    "Pipeline crashed: [WinError 5] Access is denied: 'storage\\\\runs\\\\e13e92ac6ff5\\\\status.json.tmp' -> 'storage\\\\runs\\\\e13e92ac6ff5\\\\status.json'"
+  ]
+}

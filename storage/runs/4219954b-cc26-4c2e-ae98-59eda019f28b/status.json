@@ -1,0 +1,26 @@
+{
+  "run_id": "4219954b-cc26-4c2e-ae98-59eda019f28b",
+  "user_id": null,
+  "status": "completed",
+  "current_step": null,
+  "started_at": "2026-08-14T12:51:01.049029",
+  "finished_at": "2026-08-14T12:51:38.606207",
+  "query": "Smart Predictive and Diagnostic\nHealthcare Analytics Platform",
+  "steps": [
+    "search",
+    "download",
+    "extract",
+    "mine",
+    "index",
+    "report"
+  ],
+  "papers_found": 10,
+  "papers_downloaded": 10,
+  "papers_extracted": 10,
+  "papers_mined": 10,
+  "papers_indexed": 10,
+  "report_path": null,
+  "errors": [
+    "Report generation failed: 502: Upstream AI Error: Error code: 413 - {'error': {'message': 'Request too large for model `llama-3.3-70b-versatile` in organization `org_01kw6z4xh0fqnb2zw45ba5c2jq` service tier `on_demand` on tokens per minute (TPM): Limit 12000, Requested 13678, please reduce your message size and try again. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"
+  ]
+}

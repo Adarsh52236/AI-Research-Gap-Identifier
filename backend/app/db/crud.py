@@ -36,6 +36,8 @@ def save_download_artifact(db: Session, dl_res: DownloadPaperResponse) -> Downlo
         db.add(artifact)
         
     artifact.local_path = dl_res.local_path
+    if hasattr(dl_res, "storage_path"):
+        artifact.storage_path = dl_res.storage_path
     artifact.sha256 = dl_res.sha256
     artifact.size_bytes = dl_res.size_bytes
     
@@ -51,6 +53,8 @@ def save_extraction_artifact(db: Session, ex_res: ExtractPaperResponse) -> Extra
         
     artifact.raw_text_path = ex_res.raw_text_path
     artifact.sections_path = ex_res.sections_path
+    if hasattr(ex_res, "storage_path"):
+        artifact.storage_path = ex_res.storage_path
     artifact.extracted_chars = ex_res.extracted_chars
     artifact.sections_found_json = json.dumps(ex_res.sections_found)
     
@@ -121,7 +125,8 @@ def save_report(db: Session, run_id: str, report_res: GapReportResponse):
         model=report_res.report.model,
         paper_ids_json=json.dumps(report_res.report.paper_ids),
         report_json_path=report_res.report_json_path,
-        report_md_path=report_res.report_md_path
+        report_md_path=report_res.report_md_path,
+        storage_path=getattr(report_res, "storage_path", None)
     )
     db.add(row)
     db.commit()

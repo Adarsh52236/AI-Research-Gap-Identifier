@@ -1,0 +1,3 @@
+{"ts": "2026-08-14T12:48:32.516684", "step": "preprocess", "msg": "Extracting text from URL: https://arxiv.org/pdf/2003.07678v3.pdf"}
+{"ts": "2026-08-14T12:48:34.191735", "step": "search", "msg": "Searching for "}
+{"ts": "2026-08-14T12:48:35.556395", "step": "search", "msg": "Found 0 papers"}

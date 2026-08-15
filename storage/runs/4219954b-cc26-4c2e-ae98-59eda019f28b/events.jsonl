@@ -1,0 +1,6 @@
+{"ts": "2026-08-14T12:51:03.272884", "step": "search", "msg": "Searching for AI-driven predictive healthcare analytics using wearable technology and IoT"}
+{"ts": "2026-08-14T12:51:13.114219", "step": "search", "msg": "Found 10 papers"}
+{"ts": "2026-08-14T12:51:20.436657", "step": "download", "paper_id": "2303.15563v1", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:51:21.930870", "step": "extract", "paper_id": "2303.15563v1", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:51:22.356287", "step": "mine", "paper_id": "2303.15563v1", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:51:38.604617", "step": "report", "error": "502: Upstream AI Error: Error code: 413 - {'error': {'message': 'Request too large for model `llama-3.3-70b-versatile` in organization `org_01kw6z4xh0fqnb2zw45ba5c2jq` service tier `on_demand` on tokens per minute (TPM): Limit 12000, Requested 13678, please reduce your message size and try again. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}"}

@@ -1,0 +1,12 @@
+{"ts": "2026-08-14T12:59:36.330484", "step": "search", "msg": "Searching for AI-driven predictive healthcare analytics using IoT and machine learning for real-time monitoring"}
+{"ts": "2026-08-14T12:59:42.749346", "step": "search", "msg": "Found 5 papers"}
+{"ts": "2026-08-14T12:59:42.752721", "step": "download", "paper_id": "2303.15563v1", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:59:42.755031", "step": "download", "paper_id": "2312.05530v2", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:59:42.915086", "step": "download", "paper_id": "2502.07026v2", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:59:43.004913", "step": "extract", "paper_id": "2303.15563v1", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:59:43.004913", "step": "extract", "paper_id": "2312.05530v2", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:59:43.103989", "step": "extract", "paper_id": "2502.07026v2", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:59:43.145694", "step": "mine", "paper_id": "2303.15563v1", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:59:43.146200", "step": "mine", "paper_id": "2312.05530v2", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T12:59:43.171838", "step": "mine", "paper_id": "2502.07026v2", "msg": "Skipped (already exists)"}
+{"ts": "2026-08-14T13:00:05.362284", "step": "report", "msg": "Report generated"}

@@ -1,0 +1,24 @@
+{
+  "run_id": "38b034b1-87d3-4901-92d5-08a706039cc6",
+  "user_id": null,
+  "status": "completed",
+  "current_step": null,
+  "started_at": "2026-08-14T12:28:23.797550",
+  "finished_at": "2026-08-14T12:29:25.124885",
+  "query": "AI in healthcare",
+  "steps": [
+    "search",
+    "download",
+    "extract",
+    "mine",
+    "index",
+    "report"
+  ],
+  "papers_found": 5,
+  "papers_downloaded": 5,
+  "papers_extracted": 5,
+  "papers_mined": 5,
+  "papers_indexed": 5,
+  "report_path": "storage/reports/1786710565_gap_report.md",
+  "errors": []
+}

@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 from sqlalchemy import Column, String, Integer, Float, Boolean, Text, ForeignKey, DateTime, JSON
 from sqlalchemy.orm import relationship
+from pgvector.sqlalchemy import Vector
 from backend.app.db.session import Base
 
 class Paper(Base):
@@ -29,6 +30,7 @@ class DownloadArtifact(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     paper_id = Column(String, ForeignKey("papers.paper_id"), unique=True, index=True)
     local_path = Column(String, nullable=False)
+    storage_path = Column(String, nullable=True)
     sha256 = Column(String, nullable=True)
     size_bytes = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -42,6 +44,7 @@ class ExtractionArtifact(Base):
     paper_id = Column(String, ForeignKey("papers.paper_id"), unique=True, index=True)
     raw_text_path = Column(String, nullable=False)
     sections_path = Column(String, nullable=True)
+    storage_path = Column(String, nullable=True)
     extracted_chars = Column(Integer, nullable=False)
     sections_found_json = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -106,4 +109,14 @@ class ReportRow(Base):
     paper_ids_json = Column(Text, nullable=False)
     report_json_path = Column(String, nullable=True)
     report_md_path = Column(String, nullable=True)
+    storage_path = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class PaperSectionVector(Base):
+    __tablename__ = "paper_section_vectors"
+    
+    id = Column(String, primary_key=True, index=True)
+    text = Column(Text, nullable=False)
+    embedding = Column(Vector(384)) # all-MiniLM-L6-v2 dimension
+    metadata_json = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)

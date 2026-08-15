@@ -16,6 +16,7 @@ from backend.app.core.gap_analyzer.gap_signal_service import GapSignalService
 from backend.app.core.embeddings.indexing_service import EmbeddingIndexingService
 from backend.app.core.gap_analyzer.gap_report_service import GapReportService
 from backend.app.core.gap_analyzer.groq_client import GroqLLMClient
+from backend.app.core.storage.artifact_store import get_artifact_store
 from backend.app.db.session import SessionLocal
 from backend.app.db import crud
 import os
@@ -34,6 +35,7 @@ class PipelineRunner:
         self.indexer = EmbeddingIndexingService()
         self.report_generator = GapReportService()
         self.llm_client = GroqLLMClient()
+        self.artifact_store = get_artifact_store()
 
     async def run(self, request: PipelineRunRequest, user_id: int | None = None) -> PipelineRunStatus:
         timestamp = str(time.time())
@@ -141,13 +143,21 @@ class PipelineRunner:
                             self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "download", "paper_id": p.paper_id, "msg": "Skipped (already exists)"})
                             status.papers_downloaded += 1
                         else:
-                            await self.downloader.download_pdf(
+                            dl_res = await self.downloader.download_pdf(
                                 pdf_url=p.pdf_url,
                                 paper_id=p.paper_id,
                                 source=p.source,
                                 title=p.title,
                                 year=p.year
                             )
+                            if settings.ARTIFACT_BACKEND.lower() == "supabase":
+                                remote_path = self.artifact_store.upload_file(dl_res.local_path, "documents", f"{p.paper_id}.pdf")
+                                dl_res.storage_path = remote_path
+                            if db:
+                                try:
+                                    crud.save_download_artifact(db, dl_res)
+                                except Exception as e:
+                                    logger.error(f"DB error save_download_artifact for {p.paper_id}: {e}")
                             status.papers_downloaded += 1
                         valid_paper_ids.append(p.paper_id)
                     except Exception as e:
@@ -175,11 +185,23 @@ class PipelineRunner:
                             extracted_ids.append(p.paper_id)
                         else:
                             if expected_pdf.exists():
-                                self.extractor.extract_and_process(
+                                ex_res = self.extractor.extract_and_process(
                                     local_pdf_path=expected_pdf,
                                     paper_id=p.paper_id,
                                     parse_sections=True
                                 )
+                                if settings.ARTIFACT_BACKEND.lower() == "supabase":
+                                    remote_path = self.artifact_store.upload_file(ex_res.raw_text_path, "documents", f"{p.paper_id}_raw.txt")
+                                    if ex_res.sections_path:
+                                        remote_path_sec = self.artifact_store.upload_file(ex_res.sections_path, "documents", f"{p.paper_id}_sections.json")
+                                        ex_res.storage_path = remote_path_sec
+                                    else:
+                                        ex_res.storage_path = remote_path
+                                if db:
+                                    try:
+                                        crud.save_extraction_artifact(db, ex_res)
+                                    except Exception as e:
+                                        logger.error(f"DB error save_extraction_artifact for {p.paper_id}: {e}")
                                 status.papers_extracted += 1
                                 extracted_ids.append(p.paper_id)
                     except Exception as e:
@@ -263,6 +285,14 @@ class PipelineRunner:
                             save_report=True
                         )
                         rep_res = await self.report_generator.generate_report(rep_req)
+                        if settings.ARTIFACT_BACKEND.lower() == "supabase" and rep_res.report_md_path:
+                            remote_path = self.artifact_store.upload_file(rep_res.report_md_path, "documents", f"report_{run_id}.md")
+                            rep_res.storage_path = remote_path
+                        if db:
+                            try:
+                                crud.save_report(db, run_id, rep_res)
+                            except Exception as e:
+                                logger.error(f"DB error save_report for {run_id}: {e}")
                         status.report_path = rep_res.report_md_path
                         self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "report", "msg": "Report generated"})
                     except Exception as e:

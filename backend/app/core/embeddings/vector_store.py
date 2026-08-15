@@ -1,9 +1,39 @@
-"""Chroma Vector Store."""
+"""Vector Store abstractions."""
 import chromadb
 from pathlib import Path
+from abc import ABC, abstractmethod
 from backend.app.config import settings
 
-class ChromaVectorStore:
+class VectorStore(ABC):
+    @abstractmethod
+    def upsert_texts(self, items: list[dict]):
+        """
+        Upsert items into the vector store.
+        items: list of dict with id, text, embedding, metadata
+        """
+        pass
+        
+    @abstractmethod
+    def query(self, query_embedding: list[float], top_k: int, where: dict | None = None) -> dict:
+        """
+        Queries the vector store.
+        Returns a dictionary shaped like Chroma's response for backward compatibility:
+        {
+            "ids": [[id1, id2, ...]],
+            "distances": [[dist1, dist2, ...]],
+            "documents": [[doc1, doc2, ...]],
+            "metadatas": [[meta1, meta2, ...]]
+        }
+        """
+        pass
+        
+    @abstractmethod
+    def exists(self, ids: list[str]) -> list[bool]:
+        """Check if IDs exist."""
+        pass
+
+
+class ChromaVectorStore(VectorStore):
     def __init__(self):
         db_path = Path(settings.CHROMA_DB_PATH).resolve()
         self.client = chromadb.PersistentClient(path=str(db_path))
@@ -13,13 +43,9 @@ class ChromaVectorStore:
         )
         
     def _clean_metadata(self, metadata: dict) -> dict:
-        """Chroma doesn't accept None values in metadata."""
         return {k: v for k, v in metadata.items() if v is not None}
 
     def upsert_texts(self, items: list[dict]):
-        """Upsert items into Chroma.
-        items: list of dict with id, text, embedding, metadata
-        """
         if not items:
             return
             
@@ -36,17 +62,14 @@ class ChromaVectorStore:
         )
         
     def query(self, query_embedding: list[float], top_k: int, where: dict | None = None) -> dict:
-        """Queries the vector store."""
-        results = self.collection.query(
+        return self.collection.query(
             query_embeddings=[query_embedding],
             n_results=top_k,
             where=where,
             include=["documents", "metadatas", "distances"]
         )
-        return results
         
     def exists(self, ids: list[str]) -> list[bool]:
-        """Check if IDs exist. (Chroma API workaround since no direct 'exists' method)"""
         if not ids:
             return []
             
@@ -56,3 +79,11 @@ class ChromaVectorStore:
             return [i in existing_ids for i in ids]
         except Exception:
             return [False] * len(ids)
+
+
+def get_vector_store() -> VectorStore:
+    if settings.VECTOR_BACKEND.lower() == "pgvector":
+        from backend.app.core.embeddings.pgvector_store import PgVectorStore
+        return PgVectorStore()
+    else:
+        return ChromaVectorStore()
