@@ -8,7 +8,7 @@ from backend.app.db.schemas import (
     DownloadPaperRequest, ExtractPaperRequest, MineGapSignalsRequest,
     IndexEmbeddingsRequest, GapReportRequest
 )
-from backend.app.core.pipeline.run_store import RunStore
+from backend.app.core.pipeline.run_store import get_run_store
 from backend.app.core.fetcher.fetcher_manager import FetcherManager
 from backend.app.core.downloader.pdf_downloader import PDFDownloader
 from backend.app.core.extractor.extraction_service import ExtractionService
@@ -27,7 +27,7 @@ logger = get_logger(__name__)
 
 class PipelineRunner:
     def __init__(self):
-        self.run_store = RunStore()
+        self.run_store = get_run_store()
         self.fetcher = FetcherManager()
         self.downloader = PDFDownloader()
         self.extractor = ExtractionService()
@@ -49,21 +49,16 @@ class PipelineRunner:
             query=request.query,
             steps=request.steps
         )
-        self.run_store.save_status(run_id, status)
+        self.run_store.create_run(status)
         
         db = SessionLocal() if SessionLocal else None
-        if db:
-            try:
-                crud.create_or_update_run(db, status)
-            except Exception as e:
-                logger.error(f"Database error writing run status {run_id}: {e}")
-                
+        
         papers_to_process = []
         
         try:
             # 0. Preprocess
             status.current_step = "preprocess"
-            self.run_store.save_status(run_id, status)
+            self.run_store.update_run(run_id, status)
             
             parsed_prompt = await self.llm_client.parse_user_prompt_json(request.query, request.user_document_text)
             
@@ -94,7 +89,7 @@ class PipelineRunner:
             # 1. Search
             if "search" in request.steps:
                 status.current_step = "search"
-                self.run_store.save_status(run_id, status)
+                self.run_store.update_run(run_id, status)
                 if db:
                     try:
                         crud.create_or_update_run(db, status)
@@ -111,18 +106,9 @@ class PipelineRunner:
                 )
                 papers_to_process = search_results[:request.limit]
                 status.papers_found = len(papers_to_process)
-                self.run_store.save_status(run_id, status)
+                self.run_store.update_run(run_id, status)
                 
-                if db:
-                    for p in papers_to_process:
-                        try:
-                            crud.upsert_paper(db, p)
-                        except Exception as e:
-                            logger.error(f"Database error upserting paper {p.paper_id}: {e}")
-                    try:
-                        crud.create_or_update_run(db, status)
-                    except Exception as e:
-                        logger.error(f"Database error writing run status {run_id}: {e}")
+                self.run_store.update_run(run_id, status)
                 self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "search", "msg": f"Found {len(papers_to_process)} papers"})
 
             valid_paper_ids = []
@@ -130,7 +116,7 @@ class PipelineRunner:
             # 2. Download
             if "download" in request.steps:
                 status.current_step = "download"
-                self.run_store.save_status(run_id, status)
+                self.run_store.update_run(run_id, status)
                 for p in papers_to_process:
                     if not p.pdf_url:
                         continue
@@ -164,12 +150,12 @@ class PipelineRunner:
                         err = f"Download failed for {p.paper_id}: {str(e)}"
                         status.errors.append(err)
                         self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "download", "paper_id": p.paper_id, "error": str(e)})
-                self.run_store.save_status(run_id, status)
+                self.run_store.update_run(run_id, status)
 
             # 3. Extract
             if "extract" in request.steps:
                 status.current_step = "extract"
-                self.run_store.save_status(run_id, status)
+                self.run_store.update_run(run_id, status)
                 extracted_ids = []
                 for p in papers_to_process:
                     if p.paper_id not in valid_paper_ids:
@@ -209,12 +195,12 @@ class PipelineRunner:
                         status.errors.append(err)
                         self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "extract", "paper_id": p.paper_id, "error": str(e)})
                 valid_paper_ids = extracted_ids
-                self.run_store.save_status(run_id, status)
+                self.run_store.update_run(run_id, status)
 
             # 4. Mine
             if "mine" in request.steps:
                 status.current_step = "mine"
-                self.run_store.save_status(run_id, status)
+                self.run_store.update_run(run_id, status)
                 mined_ids = []
                 for pid in valid_paper_ids:
                     try:
@@ -239,12 +225,12 @@ class PipelineRunner:
                         self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "mine", "paper_id": pid, "error": str(e)})
                 
                 valid_paper_ids = mined_ids
-                self.run_store.save_status(run_id, status)
+                self.run_store.update_run(run_id, status)
 
             # 5. Index
             if "index" in request.steps:
                 status.current_step = "index"
-                self.run_store.save_status(run_id, status)
+                self.run_store.update_run(run_id, status)
                 for pid in valid_paper_ids:
                     try:
                         res = self.indexer.index_paper_ids(
@@ -261,12 +247,12 @@ class PipelineRunner:
                         err = f"Index failed for {pid}: {str(e)}"
                         status.errors.append(err)
                         self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "index", "paper_id": pid, "error": str(e)})
-                self.run_store.save_status(run_id, status)
+                self.run_store.update_run(run_id, status)
 
             # 6. Report
             if "report" in request.steps:
                 status.current_step = "report"
-                self.run_store.save_status(run_id, status)
+                self.run_store.update_run(run_id, status)
                 if len(valid_paper_ids) > 0 and (not request.force_report):
                     # check if we can resume/skip report? The prompt says: "if report exists, skip report generation (unless force_report)"
                     # We need to see if a report exists for this run_id? Wait, the report is saved via GapReportService, which saves it by timestamp usually.
@@ -300,7 +286,7 @@ class PipelineRunner:
                         status.errors.append(err)
                         status.status = "failed"
                         self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "report", "error": str(e)})
-                        self.run_store.save_status(run_id, status)
+                        self.run_store.update_run(run_id, status)
                         return status
                 
             # Finish
@@ -315,5 +301,5 @@ class PipelineRunner:
             
         status.finished_at = datetime.utcnow().isoformat()
         status.current_step = None
-        self.run_store.save_status(run_id, status)
+        self.run_store.update_run(run_id, status)
         return status

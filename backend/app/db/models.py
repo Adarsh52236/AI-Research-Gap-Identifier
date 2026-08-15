@@ -94,6 +94,7 @@ class PipelineRunRow(Base):
     papers_indexed = Column(Integer, default=0)
     report_path = Column(String, nullable=True)
     errors_json = Column(Text, nullable=True)
+    events_json = Column(Text, nullable=True)
     started_at = Column(DateTime, default=datetime.utcnow)
     finished_at = Column(DateTime, nullable=True)
 

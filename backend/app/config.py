@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     DB_ENABLED: bool = True
     
     # Deployment & Security
+    ENVIRONMENT: str = "development"
     ALLOWED_ORIGINS: str = "http://localhost:5173"
     ALLOW_CREDENTIALS: bool = False
     LOG_LEVEL: str = "INFO"

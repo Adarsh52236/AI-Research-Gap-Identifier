@@ -37,6 +37,10 @@ export default function ChatDashboard() {
       const res = await runsService.startPipelineRun(payload);
       const newRunId = res.run_id;
       
+      if (!newRunId) {
+        throw new Error("Failed to start analysis: No run ID received.");
+      }
+      
       // Swap tempId with newRunId in state
       useAppStore.setState(state => {
         const msgs = state.messagesByRunId[tempId] || [];
@@ -73,11 +77,20 @@ export default function ChatDashboard() {
   };
 
   const startPolling = (runId) => {
-    if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+    if (pollIntervalRef.current) clearTimeout(pollIntervalRef.current);
     
-    pollIntervalRef.current = setInterval(async () => {
+    let pollInterval = 2000;
+    const maxInterval = 10000;
+    let notFoundCount = 0;
+    let networkErrorCount = 0;
+    
+    const poll = async () => {
       try {
         const statusRes = await runsService.getRunStatus(runId);
+        // Reset counters on success
+        notFoundCount = 0;
+        networkErrorCount = 0;
+        
         updateRun(runId, statusRes);
         
         if (statusRes.current_step) {
@@ -85,7 +98,6 @@ export default function ChatDashboard() {
         }
 
         if (statusRes.status === 'completed' || statusRes.status === 'failed') {
-          clearInterval(pollIntervalRef.current);
           setIsRunning(false);
           
           if (statusRes.status === 'completed') {
@@ -110,15 +122,51 @@ export default function ChatDashboard() {
              addMessage(runId, {
                id: Date.now().toString(),
                role: 'assistant',
-               content: `Analysis failed. Errors:\n\n${statusRes.errors_json || 'Unknown error'}`,
+               content: `Analysis failed. Errors:\n\n${JSON.stringify(statusRes.errors) || 'Unknown error'}`,
                createdAt: new Date().toISOString()
              });
           }
+          return; // Stop polling
         }
+        
+        // Increase backoff slightly for next poll, up to maxInterval
+        pollInterval = Math.min(pollInterval * 1.5, maxInterval);
+        pollIntervalRef.current = setTimeout(poll, pollInterval);
+        
       } catch (err) {
         console.error("Poll error", err);
+        if (err.response && err.response.status === 404) {
+          notFoundCount++;
+          if (notFoundCount > 2) {
+            setIsRunning(false);
+            addMessage(runId, {
+              id: Date.now().toString(),
+              role: 'assistant',
+              content: 'Run not found. Please restart analysis.',
+              createdAt: new Date().toISOString()
+            });
+            return;
+          }
+        } else {
+          networkErrorCount++;
+          if (networkErrorCount > 5) {
+            setIsRunning(false);
+            addMessage(runId, {
+              id: Date.now().toString(),
+              role: 'assistant',
+              content: 'Backend may be sleeping; retry.',
+              createdAt: new Date().toISOString()
+            });
+            return;
+          }
+        }
+        // Retry with backoff
+        pollInterval = Math.min(pollInterval * 1.5, maxInterval);
+        pollIntervalRef.current = setTimeout(poll, pollInterval);
       }
-    }, 3000);
+    };
+    
+    pollIntervalRef.current = setTimeout(poll, pollInterval);
   };
 
   useEffect(() => {
