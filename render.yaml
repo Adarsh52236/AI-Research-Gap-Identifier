@@ -7,10 +7,6 @@ services:
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/v1/health/
     autoDeploy: false # Use GitHub Actions to deploy, or change to true for Git-driven
-    disk:
-      name: backend-storage
-      mountPath: /opt/render/project/src/backend/storage
-      sizeGB: 10
     envVars:
       - key: GROQ_API_KEY
         sync: false
