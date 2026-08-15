@@ -21,10 +21,10 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     console.error('API Error:', error.response?.data || error.message);
-    // Auto-logout on 401 Unauthorized
     if (error.response && error.response.status === 401) {
       useAppStore.getState().logout();
-      window.location.href = '/login';
+      // Dispatch an event so AppShell or Landing can show the login modal if needed
+      document.dispatchEvent(new CustomEvent('open-auth'));
     }
     return Promise.reject(error);
   }
