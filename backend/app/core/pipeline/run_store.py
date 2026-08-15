@@ -18,11 +18,27 @@ class RunStore:
         run_dir = self._get_run_dir(run_id)
         status_path = run_dir / "status.json"
         
+        import time
         # Write safely
         temp_path = run_dir / "status.json.tmp"
         with open(temp_path, "w", encoding="utf-8") as f:
             f.write(status_obj.model_dump_json(indent=2))
-        temp_path.replace(status_path)
+            
+        try:
+            temp_path.replace(status_path)
+        except PermissionError:
+            # Fallback for Windows file lock issues
+            time.sleep(0.1)
+            try:
+                temp_path.replace(status_path)
+            except PermissionError:
+                # Direct write fallback
+                with open(status_path, "w", encoding="utf-8") as f:
+                    f.write(status_obj.model_dump_json(indent=2))
+                try:
+                    temp_path.unlink()
+                except OSError:
+                    pass
         
     def load_status(self, run_id: str) -> PipelineRunStatus | None:
         status_path = self._get_run_dir(run_id) / "status.json"

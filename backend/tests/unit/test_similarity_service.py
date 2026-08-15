@@ -7,6 +7,7 @@ from backend.app.config import settings
 def test_similarity_search(tmp_path, monkeypatch):
     # Mock Chroma path
     monkeypatch.setattr(settings, "CHROMA_DB_PATH", str(tmp_path / "chroma"))
+    monkeypatch.setattr(settings, "VECTOR_BACKEND", "chroma")
     
     # Mock Embeddings
     def mock_embed(self, texts):

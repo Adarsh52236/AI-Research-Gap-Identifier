@@ -1,6 +1,13 @@
 import pytest
 from fastapi.testclient import TestClient
 from backend.app.main import app
+from backend.app.core.deps import get_current_user
+from backend.app.db.models import User
+
+def mock_get_current_user():
+    return User(id=1, username="test", email="test@test.com")
+
+app.dependency_overrides[get_current_user] = mock_get_current_user
 
 client = TestClient(app)
 

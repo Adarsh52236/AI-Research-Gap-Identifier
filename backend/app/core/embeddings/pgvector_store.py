@@ -55,27 +55,13 @@ class PgVectorStore(VectorStore):
                     else:
                         stmt = stmt.where(PaperSectionVector.metadata_json.like(f'%"{k}": "{v}"%'))
 
-            # Sort by cosine distance. Vector column in SQLAlchemy has cosine_distance method.
-            stmt = stmt.order_by(PaperSectionVector.embedding.cosine_distance(query_embedding)).limit(top_k)
-            
-            results = db.execute(stmt).scalars().all()
-            
             # Format to match Chroma
             ids = []
             distances = []
             documents = []
             metadatas = []
-            
-            for row in results:
-                ids.append(row.id)
-                # Compute actual cosine distance manually or rely on a property if we select it
-                # For simplicity, returning a dummy distance or we can fetch the distance in query.
-                # Let's fetch the distance properly.
-                # Actually, sqlalchemy scalar doesn't include the distance unless we select it.
-                # Let's rewrite the query to select both model and distance.
-                pass
                 
-            # Better Query with distance:
+            # Query with distance:
             stmt = select(
                 PaperSectionVector,
                 PaperSectionVector.embedding.cosine_distance(query_embedding).label("distance")

@@ -8,13 +8,17 @@ logger = logging.getLogger(__name__)
 
 class ReviewerLLMClient:
     def __init__(self):
-        if not settings.GROQ_API_KEY:
-            raise ValueError("GROQ_API_KEY is not set.")
-        self.client = AsyncGroq(api_key=settings.GROQ_API_KEY)
+        self.api_key = settings.GROQ_API_KEY
+        if not self.api_key:
+            logger.error("GROQ_API_KEY is not set.")
 
     async def generate_review_json(self, messages: list[dict]) -> ReviewLLMOutput:
+        if not self.api_key:
+            raise ValueError("GROQ_API_KEY is missing.")
+            
         try:
-            response = await self.client.chat.completions.create(
+            client = AsyncGroq(api_key=self.api_key)
+            response = await client.chat.completions.create(
                 messages=messages,
                 model=settings.GROQ_MODEL,
                 temperature=settings.GROQ_TEMPERATURE,

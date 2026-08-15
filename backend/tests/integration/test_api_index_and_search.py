@@ -5,6 +5,8 @@ import json
 from backend.app.main import app
 from backend.app.config import settings
 from backend.app.core.embeddings.embedding_generator import EmbeddingGenerator
+from backend.app.api.v1.analysis import indexing_service, search_service
+from backend.app.core.embeddings.vector_store import ChromaVectorStore
 import pytest
 
 client = TestClient(app)
@@ -16,6 +18,11 @@ def test_api_index_and_search(tmp_path, monkeypatch):
     
     monkeypatch.setattr(settings, "STORAGE_DIR", str(storage_dir))
     monkeypatch.setattr(settings, "CHROMA_DB_PATH", str(storage_dir / "chroma"))
+    monkeypatch.setattr(settings, "VECTOR_BACKEND", "chroma")
+    
+    isolated_store = ChromaVectorStore()
+    indexing_service.store = isolated_store
+    search_service.store = isolated_store
     
     def mock_embed(self, texts):
         return [[0.1] * 384 for _ in texts]
@@ -36,7 +43,7 @@ def test_api_index_and_search(tmp_path, monkeypatch):
     })
     assert resp1.status_code == 200
     assert resp1.json()["indexed_count"] == 2
-    
+        
     # Search
     resp2 = client.post("/api/v1/analysis/similarity-search/", json={
         "query_text": "A",
