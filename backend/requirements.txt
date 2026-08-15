@@ -13,6 +13,7 @@ httpx
 pydantic
 alembic
 pytest
+pytest-asyncio
 slowapi
 python-multipart
 pydantic-settings

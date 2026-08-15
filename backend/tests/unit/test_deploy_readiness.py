@@ -7,6 +7,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 # Using an explicit import path to run functions for tests
 from backend.scripts.deploy_readiness_check import check_database, check_supabase_storage, dry_run_pipeline
 
+@patch("backend.scripts.deploy_readiness_check.settings.DATABASE_URL", "postgresql://fake")
 @patch("backend.scripts.deploy_readiness_check.SessionLocal")
 def test_check_database_success(mock_session):
     mock_db = MagicMock()
