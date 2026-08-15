@@ -7,20 +7,20 @@ An AI-powered pipeline to search, download, parse, and analyze scientific papers
 
 ## Deployment
 
-### Backend (Render / Railway)
-1. Set the following environment variables:
-   - `GROQ_API_KEY`: Your Groq API key
-   - `ALLOWED_ORIGINS`: e.g. `https://your-frontend-domain.vercel.app`
-   - `DATABASE_URL`: PostgreSQL connection string (Supabase)
-   - `CHROMA_DB_PATH`: Set to a persistent disk path (e.g. `/opt/render/project/src/backend/storage/chromadb`)
-2. Start command: `uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT`
+### Live URLs
+- **Frontend (Vercel)**: `https://<your-vercel-domain>`
+- **Backend (Render)**: `https://ai-research-gap-identifier-backend.onrender.com`
+*(Update these placeholders with your actual live URLs after deployment)*
 
-### Frontend (Vercel)
-1. Point Vercel to the `frontend/` directory.
-2. Build command: `npm run build`
-3. Set Environment Variable:
-   - `VITE_API_BASE_URL`: Your deployed backend URL (e.g. `https://my-backend.onrender.com`)
+### Cloud Setup Guide
+For comprehensive step-by-step instructions on deploying to Render and Vercel, attaching persistent disks, configuring SPA rewrites, and setting up GitHub Actions CI/CD, please refer to the [Cloud Deployment Guide](docs/setup/cloud_deployment.md).
 
+### Deploy Checklist
+- [ ] Connect repository to Render and deploy from `render.yaml` blueprint.
+- [ ] Ensure Render persistent disk is attached.
+- [ ] Connect repository to Vercel, set root directory to `frontend`.
+- [ ] Ensure Vercel `VITE_API_BASE_URL` env variable points to Render.
+- [ ] Push to `main` to trigger GitHub Actions CI pipeline.
 
 ## Windows Setup Instructions
 Run `scripts\setup.bat` to set up the environment.

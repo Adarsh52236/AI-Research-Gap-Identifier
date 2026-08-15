@@ -1,0 +1,13 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+node_modules/
+dist/
+.env
+storage/downloads/
+storage/processed/
+storage/reports/
+storage/runs/
+storage/chromadb/
+.DS_Store

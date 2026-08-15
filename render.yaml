@@ -1,0 +1,34 @@
+services:
+  - type: web
+    name: ai-research-gap-identifier-backend
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health/
+    autoDeploy: false # Use GitHub Actions to deploy, or change to true for Git-driven
+    disk:
+      name: backend-storage
+      mountPath: /opt/render/project/src/backend/storage
+      sizeGB: 10
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: ALLOWED_ORIGINS
+        value: https://<your-vercel-domain> # Update with actual Vercel domain
+      - key: CHROMA_DB_PATH
+        value: /opt/render/project/src/backend/storage/chromadb
+      - key: STORAGE_DIR
+        value: /opt/render/project/src/backend/storage
+      - key: DOWNLOADS_DIR
+        value: /opt/render/project/src/backend/storage/downloads
+      - key: PROCESSED_DIR
+        value: /opt/render/project/src/backend/storage/processed
+      - key: REPORTS_DIR
+        value: /opt/render/project/src/backend/storage/reports
+      - key: RUNS_DIR
+        value: /opt/render/project/src/backend/storage/runs
+      - key: ENVIRONMENT
+        value: production
