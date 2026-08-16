@@ -26,6 +26,15 @@ const useAppStore = create(
       updateRun: (runId, updates) => set((state) => ({
         runs: state.runs.map(r => r.run_id === runId ? { ...r, ...updates } : r)
       })),
+      removeRun: (runId) => set((state) => {
+        const { [runId]: _, ...restMessages } = state.messagesByRunId;
+        return {
+          runs: state.runs.filter(r => r.run_id !== runId),
+          messagesByRunId: restMessages,
+          activeRunId: state.activeRunId === runId ? null : state.activeRunId
+        };
+      }),
+      clearRuns: () => set({ runs: [], messagesByRunId: {}, activeRunId: null }),
 
       activeRunId: null,
       setActiveRunId: (id) => set({ activeRunId: id }),

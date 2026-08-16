@@ -77,12 +77,12 @@ export default function Sidebar() {
       <div className="p-2 border-t border-border flex flex-col gap-1">
         {auth.user ? (
           <button 
-            onClick={() => useAppStore.getState().logout()}
+            onClick={() => setUI({ isSettingsOpen: true })}
             className="flex items-center gap-2 p-2 rounded-lg text-sm text-muted hover:bg-border hover:text-text transition-colors"
-            title="Log out"
+            title="Settings"
           >
             <Settings size={18} />
-            {!collapsed && <span>Log out ({auth.user.username})</span>}
+            {!collapsed && <span>Settings ({auth.user.username})</span>}
           </button>
         ) : (
           <button 

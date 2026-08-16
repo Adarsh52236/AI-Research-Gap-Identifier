@@ -200,3 +200,23 @@ from typing import List
 def list_recent_runs(limit: int = 50, current_user: User = Depends(get_current_user)):
     """List recent pipeline runs."""
     return run_store.list_runs(limit=limit, user_id=current_user.id)
+
+@router.delete("/runs/{run_id}")
+def delete_pipeline_run(run_id: str, current_user: User = Depends(get_current_user)):
+    """Delete a specific pipeline run."""
+    status = run_store.get_run(run_id)
+    if not status:
+        raise HTTPException(status_code=404, detail="Run not found")
+    if status.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this run")
+        
+    deleted = run_store.delete_run(run_id)
+    if not deleted:
+        raise HTTPException(status_code=500, detail="Failed to delete run")
+    return {"message": "Run deleted successfully"}
+
+@router.delete("/runs")
+def clear_pipeline_runs(current_user: User = Depends(get_current_user)):
+    """Clear all pipeline runs for the current user."""
+    deleted_count = run_store.delete_all_runs(user_id=current_user.id)
+    return {"message": f"Successfully deleted {deleted_count} runs", "deleted_count": deleted_count}

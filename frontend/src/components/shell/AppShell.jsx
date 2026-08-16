@@ -3,10 +3,11 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import useAppStore from '../../store/useAppStore';
 import AuthModal from '../auth/AuthModal';
+import SettingsModal from './SettingsModal';
 import Starfield from './Starfield';
 
 export default function AppShell() {
-  const { auth } = useAppStore();
+  const { auth, ui, setUI } = useAppStore();
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
   // Listen for open-auth event
@@ -36,6 +37,7 @@ export default function AppShell() {
       </main>
       
       <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      <SettingsModal isOpen={ui.isSettingsOpen} onClose={() => setUI({ isSettingsOpen: false })} />
     </div>
   );
 }

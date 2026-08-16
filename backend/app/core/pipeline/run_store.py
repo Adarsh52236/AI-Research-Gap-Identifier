@@ -26,7 +26,12 @@ class RunStore:
         
     def list_runs(self, limit: int = 50, user_id: int | None = None) -> list[PipelineRunStatus]:
         pass
-
+        
+    def delete_run(self, run_id: str) -> bool:
+        pass
+        
+    def delete_all_runs(self, user_id: int | None = None) -> int:
+        pass
 class LocalRunStore(RunStore):
     def __init__(self):
         self.runs_dir = Path(settings.RUNS_DIR)
@@ -94,6 +99,32 @@ class LocalRunStore(RunStore):
         runs.sort(key=lambda x: x.started_at or "", reverse=True)
         return runs[:limit]
 
+    def delete_run(self, run_id: str) -> bool:
+        run_dir = self._get_run_dir(run_id)
+        if not run_dir.exists():
+            return False
+        import shutil
+        shutil.rmtree(run_dir, ignore_errors=True)
+        return True
+
+    def delete_all_runs(self, user_id: int | None = None) -> int:
+        deleted = 0
+        if self.runs_dir.exists():
+            for run_id_dir in self.runs_dir.iterdir():
+                if run_id_dir.is_dir():
+                    status_file = run_id_dir / "status.json"
+                    if status_file.exists():
+                        try:
+                            with open(status_file, "r", encoding="utf-8") as f:
+                                data = json.load(f)
+                                run_status = PipelineRunStatus(**data)
+                                if user_id is None or run_status.user_id == user_id:
+                                    import shutil
+                                    shutil.rmtree(run_id_dir, ignore_errors=True)
+                                    deleted += 1
+                        except Exception as e:
+                            logger.error(f"Error parsing run {run_id_dir.name}: {e}")
+        return deleted
 class DBRunStore(RunStore):
     def _get_db(self):
         return SessionLocal()
@@ -209,6 +240,42 @@ class DBRunStore(RunStore):
         except Exception as e:
             logger.error(f"DBRunStore list_runs failed: {e}")
             return []
+        finally:
+            db.close()
+
+    def delete_run(self, run_id: str) -> bool:
+        db = self._get_db()
+        try:
+            from backend.app.db.models import PipelineRunRow
+            from sqlalchemy import select, delete
+            row = db.execute(select(PipelineRunRow).filter(PipelineRunRow.run_id == run_id)).scalar_one_or_none()
+            if row:
+                db.execute(delete(PipelineRunRow).filter(PipelineRunRow.run_id == run_id))
+                db.commit()
+                return True
+            return False
+        except Exception as e:
+            logger.error(f"DBRunStore delete_run failed for {run_id}: {e}")
+            db.rollback()
+            return False
+        finally:
+            db.close()
+
+    def delete_all_runs(self, user_id: int | None = None) -> int:
+        db = self._get_db()
+        try:
+            from backend.app.db.models import PipelineRunRow
+            from sqlalchemy import delete
+            stmt = delete(PipelineRunRow)
+            if user_id is not None:
+                stmt = stmt.filter(PipelineRunRow.user_id == user_id)
+            result = db.execute(stmt)
+            db.commit()
+            return result.rowcount
+        except Exception as e:
+            logger.error(f"DBRunStore delete_all_runs failed: {e}")
+            db.rollback()
+            return 0
         finally:
             db.close()
 

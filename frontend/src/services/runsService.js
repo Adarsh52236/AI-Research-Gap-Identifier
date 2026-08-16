@@ -28,5 +28,15 @@ export const runsService = {
       }
       throw error;
     }
+  },
+  
+  deleteRun: async (runId) => {
+    const response = await api.delete(`/analysis/runs/${runId}`);
+    return response.data;
+  },
+  
+  clearAllRuns: async () => {
+    const response = await api.delete('/analysis/runs');
+    return response.data;
   }
 };
