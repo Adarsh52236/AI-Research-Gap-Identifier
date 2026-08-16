@@ -4,6 +4,7 @@ import Sidebar from './Sidebar';
 import useAppStore from '../../store/useAppStore';
 import AuthModal from '../auth/AuthModal';
 import ThemeToggle from './ThemeToggle';
+import Starfield from './Starfield';
 
 export default function AppShell() {
   const { ui, auth } = useAppStore();
@@ -30,7 +31,8 @@ export default function AppShell() {
   }, [auth.user]);
 
   return (
-    <div className="flex h-screen bg-bg text-text font-sans overflow-hidden">
+    <div className="flex h-screen bg-bg text-text font-sans overflow-hidden relative">
+      <Starfield />
       <Sidebar />
       <main className="flex-1 flex flex-col relative h-full max-w-full overflow-hidden">
         <div className="absolute top-4 right-4 z-50">

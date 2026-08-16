@@ -13,6 +13,7 @@
     --accent: #B4532A;        /* terracotta/rust */
     --accent-soft: #F3E2D9;
     --shadow: 0 10px 30px rgba(0,0,0,0.06);
+    --star-color: rgba(180, 83, 42, 0.4);
   }
 
   .dark {
@@ -24,6 +25,7 @@
     --accent: #C4633A;
     --accent-soft: rgba(196,99,58,0.15);
     --shadow: 0 10px 30px rgba(0,0,0,0.35);
+    --star-color: rgba(255, 255, 255, 0.8);
   }
 
   body { 
