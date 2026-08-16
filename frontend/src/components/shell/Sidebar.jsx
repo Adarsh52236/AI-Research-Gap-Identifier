@@ -6,10 +6,11 @@ import clsx from 'clsx';
 
 export default function Sidebar() {
   const navigate = useNavigate();
-  const { ui, setUI, runs, auth } = useAppStore();
+  const { ui, setUI, runs, auth, setActiveRunId } = useAppStore();
   const collapsed = ui.sidebarCollapsed;
 
   const handleNewChat = () => {
+    setActiveRunId(null);
     navigate('/app');
   };
 

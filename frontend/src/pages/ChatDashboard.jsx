@@ -17,8 +17,17 @@ export default function ChatDashboard() {
   const [loadingText, setLoadingText] = useState('');
   const pollIntervalRef = useRef(null);
 
-  // If there's an active run, we show its messages, otherwise empty.
-  const messages = activeRunId ? (messagesByRunId[activeRunId] || []) : [];
+  // If there's an active run, we show its messages, otherwise we show a starter message.
+  const baseMessages = activeRunId ? (messagesByRunId[activeRunId] || []) : [];
+  
+  const displayMessages = baseMessages.length > 0 ? baseMessages : [
+    {
+      id: 'greeting',
+      role: 'assistant',
+      content: 'Hello! I am GapFinder AI. How can I help you research today? You can ask me to analyze literature on any complex topic to identify research gaps.',
+      createdAt: new Date().toISOString()
+    }
+  ];
 
   const handleSend = async (payload) => {
     try {
@@ -211,19 +220,7 @@ export default function ChatDashboard() {
 
   return (
     <div className="flex flex-col h-full relative">
-      {messages.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-center px-4 animate-in fade-in duration-500">
-          <div className="w-16 h-16 bg-panel shadow-sm border border-border rounded-2xl flex items-center justify-center mb-6 text-accent">
-            <span className="font-serif text-2xl font-bold">G</span>
-          </div>
-          <h2 className="text-2xl font-serif text-text mb-2">How can I help you research today?</h2>
-          <p className="text-muted font-sans text-sm max-w-md">
-            Ask a complex question to kick off an automated pipeline that searches, downloads, extracts, and synthesizes recent academic literature.
-          </p>
-        </div>
-      ) : (
-        <ChatThread messages={messages} isRunning={isRunning} loadingText={loadingText} />
-      )}
+      <ChatThread messages={displayMessages} isRunning={isRunning} loadingText={loadingText} />
       
       <div className="shrink-0 pt-2 pb-6 w-full max-w-3xl mx-auto bg-bg z-10 sticky bottom-0">
         <ChatComposer onSend={handleSend} isRunning={isRunning} />
