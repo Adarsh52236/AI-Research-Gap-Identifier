@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import useAppStore from '../../store/useAppStore';
 import AuthModal from '../auth/AuthModal';
+import ThemeToggle from './ThemeToggle';
 
 export default function AppShell() {
   const { ui, auth } = useAppStore();
@@ -32,6 +33,9 @@ export default function AppShell() {
     <div className="flex h-screen bg-bg text-text font-sans overflow-hidden">
       <Sidebar />
       <main className="flex-1 flex flex-col relative h-full max-w-full overflow-hidden">
+        <div className="absolute top-4 right-4 z-50">
+          <ThemeToggle />
+        </div>
         {/* Main content area restricted to max-w-3xl for readability */}
         <div className="flex-1 w-full mx-auto max-w-3xl h-full flex flex-col px-4 sm:px-6 relative">
           <Outlet />

@@ -13,8 +13,8 @@ export default function ThemeToggle() {
   };
 
   return (
-    <div className="w-full px-1 py-2" title="Toggle Theme">
-      <div className="toggle-switch">
+    <div title="Toggle Theme">
+      <div className="toggle-switch shadow-md rounded-full">
         <label className="switch-label">
           <input 
             type="checkbox" 

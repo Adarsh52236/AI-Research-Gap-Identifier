@@ -4,8 +4,6 @@ import useAppStore from '../../store/useAppStore';
 import { MessageSquare, Settings, Sun, Moon, Plus, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 import clsx from 'clsx';
 
-import ThemeToggle from './ThemeToggle';
-
 export default function Sidebar() {
   const navigate = useNavigate();
   const { ui, setUI, runs, auth } = useAppStore();
@@ -77,7 +75,6 @@ export default function Sidebar() {
 
       {/* Bottom Actions */}
       <div className="p-2 border-t border-border flex flex-col gap-1">
-        <ThemeToggle />
         {auth.user ? (
           <button 
             onClick={() => useAppStore.getState().logout()}
