@@ -1,7 +1,7 @@
 import api from './api';
 
 export const downloadPaper = async (pdf_url, paper_id, source, title, year) => {
-  const response = await api.post('/api/v1/papers/download/', {
+  const response = await api.post('/papers/download/', {
     pdf_url,
     paper_id,
     source,
@@ -12,7 +12,7 @@ export const downloadPaper = async (pdf_url, paper_id, source, title, year) => {
 };
 
 export const extractPaper = async (local_path, paper_id, source, year) => {
-  const response = await api.post('/api/v1/papers/extract/', {
+  const response = await api.post('/papers/extract/', {
     local_path,
     paper_id,
     source,

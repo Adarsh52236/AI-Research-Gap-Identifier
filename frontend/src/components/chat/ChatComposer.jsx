@@ -47,7 +47,7 @@ export default function ChatComposer({ onSend, isRunning }) {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await api.post("/api/v1/analysis/upload-user-document/", formData, {
+      const res = await api.post("/analysis/upload-user-document/", formData, {
         headers: { "Content-Type": "multipart/form-data" }
       });
       setUploadedFileName(res.data.filename);

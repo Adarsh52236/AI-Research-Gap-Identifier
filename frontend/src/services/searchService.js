@@ -1,7 +1,7 @@
 import api from './api';
 
 export const searchPapers = async (query, limit = 10, sources = ['arxiv', 'semantic_scholar']) => {
-  const response = await api.post('/api/v1/search/', {
+  const response = await api.post('/search/', {
     query,
     limit,
     sources,
