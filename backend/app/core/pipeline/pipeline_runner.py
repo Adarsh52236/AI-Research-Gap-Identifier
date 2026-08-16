@@ -171,7 +171,9 @@ class PipelineRunner:
                             extracted_ids.append(p.paper_id)
                         else:
                             if expected_pdf.exists():
-                                ex_res = self.extractor.extract_and_process(
+                                from fastapi.concurrency import run_in_threadpool
+                                ex_res = await run_in_threadpool(
+                                    self.extractor.extract_and_process,
                                     local_pdf_path=expected_pdf,
                                     paper_id=p.paper_id,
                                     parse_sections=True
@@ -210,7 +212,9 @@ class PipelineRunner:
                             status.papers_mined += 1
                             mined_ids.append(pid)
                         else:
-                            self.miner.process_mining_request(
+                            from fastapi.concurrency import run_in_threadpool
+                            await run_in_threadpool(
+                                self.miner.process_mining_request,
                                 paper_ids=[pid],
                                 processed_sections_paths=None,
                                 top_k=30,
@@ -233,7 +237,9 @@ class PipelineRunner:
                 self.run_store.update_run(run_id, status)
                 for pid in valid_paper_ids:
                     try:
-                        res = self.indexer.index_paper_ids(
+                        from fastapi.concurrency import run_in_threadpool
+                        res = await run_in_threadpool(
+                            self.indexer.index_paper_ids,
                             paper_ids=[pid],
                             processed_sections_paths=None,
                             sections_to_index=["ABSTRACT", "INTRODUCTION", "METHODS", "RESULTS", "DISCUSSION", "CONCLUSION"],

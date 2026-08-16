@@ -14,6 +14,8 @@ class EmbeddingGenerator:
     def _load_model(self):
         if self.model is None:
             logger.info(f"Loading embedding model: {settings.EMBEDDING_MODEL_NAME}")
+            import torch
+            torch.set_num_threads(1)
             from sentence_transformers import SentenceTransformer
             self.model = SentenceTransformer(settings.EMBEDDING_MODEL_NAME, device=settings.EMBEDDING_DEVICE)
             
