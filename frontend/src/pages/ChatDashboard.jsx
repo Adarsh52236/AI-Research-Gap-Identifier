@@ -10,7 +10,7 @@ export default function ChatDashboard() {
   const { 
     activeRunId, setActiveRunId, 
     messagesByRunId, addMessage, updateMessage,
-    addRun, updateRun
+    addRun, updateRun, runs
   } = useAppStore();
   
   const [isRunning, setIsRunning] = useState(false);
@@ -22,9 +22,29 @@ export default function ChatDashboard() {
     if (!activeRunId) {
       setSessionRunIds([]);
     } else {
-      setSessionRunIds(prev => prev.includes(activeRunId) ? prev : [activeRunId]);
+      const activeRun = runs.find(r => r.run_id === activeRunId);
+      if (activeRun) {
+        const sId = activeRun.session_id || activeRun.run_id;
+        const sessionRuns = runs
+          .filter(r => (r.session_id || r.run_id) === sId)
+          .sort((a, b) => new Date(a.started_at) - new Date(b.started_at))
+          .map(r => r.run_id);
+          
+        setSessionRunIds(prev => {
+          // Keep tempIds if they exist
+          const tempIds = prev.filter(id => id.startsWith('local_'));
+          const newSessionRunIds = [...sessionRuns, ...tempIds];
+          // Only update if arrays are different to avoid infinite loops
+          if (JSON.stringify(prev) !== JSON.stringify(newSessionRunIds)) {
+            return newSessionRunIds;
+          }
+          return prev;
+        });
+      } else {
+        setSessionRunIds(prev => prev.includes(activeRunId) ? prev : [activeRunId]);
+      }
     }
-  }, [activeRunId]);
+  }, [activeRunId, runs]);
 
   const baseMessages = sessionRunIds.flatMap(id => messagesByRunId[id] || []);
   
@@ -55,7 +75,13 @@ export default function ChatDashboard() {
         createdAt: new Date().toISOString()
       });
 
-      const res = await runsService.startPipelineRun(payload);
+      // Find the first valid run ID to use as the session_id
+      const validSessionId = sessionRunIds.find(id => !id.startsWith('local_'));
+      
+      const res = await runsService.startPipelineRun({
+        ...payload,
+        session_id: validSessionId || undefined
+      });
       const newRunId = res.run_id;
       
       if (!newRunId) {

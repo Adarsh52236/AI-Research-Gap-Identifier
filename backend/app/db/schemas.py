@@ -178,6 +178,7 @@ class GapReportResponse(BaseModel):
 
 class PipelineRunRequest(BaseModel):
     run_id: Optional[str] = None
+    session_id: Optional[str] = None
     query: str
     user_document_text: Optional[str] = None
     limit: int = 5
@@ -193,6 +194,7 @@ class PipelineRunRequest(BaseModel):
 
 class PipelineRunStatus(BaseModel):
     run_id: str
+    session_id: Optional[str] = None
     user_id: Optional[int] = None
     status: str
     current_step: Optional[str] = None

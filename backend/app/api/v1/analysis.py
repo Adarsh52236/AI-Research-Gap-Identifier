@@ -135,6 +135,7 @@ async def run_pipeline(request: Request, run_request: PipelineRunRequest, backgr
             
             initial_status = PipelineRunStatus(
                 run_id=run_id,
+                session_id=run_request.session_id if run_request.session_id else run_id,
                 user_id=current_user.id,
                 status="pending",
                 steps=run_request.steps,

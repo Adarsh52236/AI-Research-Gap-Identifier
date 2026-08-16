@@ -43,6 +43,7 @@ class PipelineRunner:
         
         status = PipelineRunStatus(
             run_id=run_id,
+            session_id=request.session_id if request.session_id else run_id,
             user_id=user_id,
             status="running",
             started_at=datetime.utcnow().isoformat(),
@@ -79,9 +80,8 @@ class PipelineRunner:
                 with open(ex_res.raw_text_path, "r", encoding="utf-8") as f:
                     request.user_document_text = f.read()
                     
-            if not request.user_document_text or len(request.user_document_text.strip()) < 50:
-                raise Exception("A research document (via upload or URL in chat) is compulsory for gap analysis. Please provide one.")
-                
+            # (Removed strict requirement for user_document_text to allow analysis without a base document)
+            
             optimized = parsed_prompt.get("optimized_query")
             if optimized and optimized.strip():
                 request.query = optimized.strip()

@@ -58,20 +58,39 @@ export default function Sidebar() {
       {/* History */}
       <div className="flex-1 overflow-y-auto p-2 space-y-1">
         {!collapsed && <div className="text-xs font-medium text-muted px-2 py-2 uppercase tracking-wider">Recent</div>}
-        {runs.map((run) => (
-          <NavLink
-            key={run.run_id}
-            to={`/app/run/${run.run_id}`}
-            className={({ isActive }) => clsx(
-              "flex items-center gap-2 p-2 rounded-lg text-sm transition-colors",
-              isActive ? "bg-accentSoft text-accent" : "text-muted hover:bg-border hover:text-text"
-            )}
-            title={run.query}
-          >
-            <MessageSquare size={18} className="shrink-0" />
-            {!collapsed && <span className="truncate">{run.query || "Untitled Analysis"}</span>}
-          </NavLink>
-        ))}
+        {(() => {
+          const sessionGroups = {};
+          runs.forEach(run => {
+            const sId = run.session_id || run.run_id;
+            if (!sessionGroups[sId]) sessionGroups[sId] = [];
+            sessionGroups[sId].push(run);
+          });
+          
+          const sessions = Object.keys(sessionGroups).map(sId => {
+            const groupRuns = sessionGroups[sId].sort((a, b) => new Date(a.started_at) - new Date(b.started_at));
+            return {
+              session_id: sId,
+              first_run_id: groupRuns[0].run_id,
+              query: groupRuns[0].query,
+              started_at: groupRuns[0].started_at
+            };
+          }).sort((a, b) => new Date(b.started_at) - new Date(a.started_at));
+
+          return sessions.map((session) => (
+            <NavLink
+              key={session.session_id}
+              to={`/app/run/${session.first_run_id}`}
+              className={({ isActive }) => clsx(
+                "flex items-center gap-2 p-2 rounded-lg text-sm transition-colors",
+                isActive ? "bg-accentSoft text-accent" : "text-muted hover:bg-border hover:text-text"
+              )}
+              title={session.query}
+            >
+              <MessageSquare size={18} className="shrink-0" />
+              {!collapsed && <span className="truncate">{session.query || "Untitled Analysis"}</span>}
+            </NavLink>
+          ));
+        })()}
       </div>
 
       {/* Bottom Actions */}

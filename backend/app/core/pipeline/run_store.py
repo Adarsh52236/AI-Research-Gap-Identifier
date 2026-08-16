@@ -177,6 +177,7 @@ class DBRunStore(RunStore):
             if row:
                 status = PipelineRunStatus(
                     run_id=row.run_id,
+                    session_id=row.session_id,
                     user_id=row.user_id,
                     status=row.status,
                     current_step=row.current_step,
@@ -220,6 +221,7 @@ class DBRunStore(RunStore):
             for row in rows:
                 status = PipelineRunStatus(
                     run_id=row.run_id,
+                    session_id=row.session_id,
                     user_id=row.user_id,
                     status=row.status,
                     current_step=row.current_step,

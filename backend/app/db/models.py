@@ -82,6 +82,7 @@ class PipelineRunRow(Base):
     __tablename__ = "pipeline_runs"
     
     run_id = Column(String, primary_key=True, index=True)
+    session_id = Column(String, nullable=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     status = Column(String, nullable=False)
     current_step = Column(String, nullable=True)
