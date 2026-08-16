@@ -241,6 +241,6 @@ class ReviewIssue(BaseModel):
 
 class ReviewLLMOutput(BaseModel):
     issues: list[ReviewIssue]
-    overall_issues: list[str]
-    overall_solutions: list[str]
+    overall_issues: list[str] = Field(default_factory=list)
+    overall_solutions: list[str] = Field(default_factory=list)
 
