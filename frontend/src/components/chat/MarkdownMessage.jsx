@@ -6,7 +6,7 @@ import 'highlight.js/styles/atom-one-dark.css';
 
 export default function MarkdownMessage({ content }) {
   return (
-    <div className="prose prose-neutral dark:prose-invert max-w-none leading-relaxed text-base font-serif">
+    <div className="prose prose-invert max-w-none leading-relaxed text-base font-serif">
       <ReactMarkdown 
         remarkPlugins={[remarkGfm]} 
         rehypePlugins={[rehypeHighlight]}

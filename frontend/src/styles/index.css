@@ -21,4 +21,14 @@
     color: var(--text); 
     font-family: 'DM Sans', sans-serif;
   }
+
+  /* Hide scrollbar globally for a cleaner look with the starfield */
+  * {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  *::-webkit-scrollbar {
+    display: none;
+  }
 }
