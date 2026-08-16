@@ -82,7 +82,7 @@ export default function Sidebar() {
             title="Settings"
           >
             <Settings size={18} />
-            {!collapsed && <span>Settings ({auth.user.username})</span>}
+            {!collapsed && <span>Settings</span>}
           </button>
         ) : (
           <button 
