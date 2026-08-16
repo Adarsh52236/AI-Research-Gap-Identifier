@@ -135,6 +135,7 @@ class DBRunStore(RunStore):
             crud.create_or_update_run(db, status_obj)
         except Exception as e:
             logger.error(f"DBRunStore create_run failed for {status_obj.run_id}: {e}")
+            raise
         finally:
             db.close()
             
@@ -144,6 +145,7 @@ class DBRunStore(RunStore):
             crud.create_or_update_run(db, status_obj)
         except Exception as e:
             logger.error(f"DBRunStore update_run failed for {run_id}: {e}")
+            raise
         finally:
             db.close()
             

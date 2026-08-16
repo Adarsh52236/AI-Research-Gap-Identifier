@@ -3,8 +3,8 @@ services:
     name: ai-research-gap-identifier-backend
     runtime: python
     rootDir: .
-    buildCommand: pip install -r backend/requirements.txt && cd backend && alembic upgrade head && cd ..
-    startCommand: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && alembic upgrade head && cd .. && uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/v1/health/
     autoDeploy: false # Use GitHub Actions to deploy, or change to true for Git-driven
     envVars:
