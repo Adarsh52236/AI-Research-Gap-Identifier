@@ -9,11 +9,12 @@ import { runsService } from './services/runsService';
 import useAppStore from './store/useAppStore';
 
 export default function App() {
-  const { setRuns } = useAppStore();
+  const { setRuns, auth } = useAppStore();
 
-  // Load history on mount
+  // Load history when auth token changes
   useEffect(() => {
     async function loadHistory() {
+      if (!auth.token) return;
       try {
         const history = await runsService.listRuns();
         setRuns(history);
@@ -22,7 +23,7 @@ export default function App() {
       }
     }
     loadHistory();
-  }, []);
+  }, [auth.token]);
 
   return (
     <Router>
