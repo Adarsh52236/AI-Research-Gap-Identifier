@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Paperclip, Loader2, Download, AlertTriangle } from 'lucide-react';
+import { Paperclip, Download, AlertTriangle } from 'lucide-react';
 import { reviewService } from '../services/reviewService';
+import ProcessingLoader from '../components/common/ProcessingLoader';
 
 export default function ReviewDashboard() {
   const [file, setFile] = useState(null);
@@ -88,20 +89,22 @@ export default function ReviewDashboard() {
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={!file || isSubmitting}
-            className="w-full py-3 px-4 bg-accent hover:bg-accent/90 text-text rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+          {isSubmitting ? (
+            <div className="w-full py-6 flex flex-col items-center justify-center bg-bg rounded-xl border border-border">
+              <ProcessingLoader size={80} />
+              <p className="mt-4 text-sm text-text font-medium animate-pulse">
                 Generating Review (This usually takes 1-2 minutes)...
-              </>
-            ) : (
-              'Generate Annotated Review'
-            )}
-          </button>
+              </p>
+            </div>
+          ) : (
+            <button
+              type="submit"
+              disabled={!file}
+              className="w-full py-3 px-4 bg-accent hover:bg-accent/90 text-text rounded-xl font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            >
+              Generate Annotated Review
+            </button>
+          )}
         </form>
 
         {error && (
