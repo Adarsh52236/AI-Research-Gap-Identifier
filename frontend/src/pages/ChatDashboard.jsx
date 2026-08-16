@@ -16,17 +16,26 @@ export default function ChatDashboard() {
   const [isRunning, setIsRunning] = useState(false);
   const [loadingText, setLoadingText] = useState('');
   const pollIntervalRef = useRef(null);
+  const [sessionRunIds, setSessionRunIds] = useState([]);
 
-  // If there's an active run, we show its messages, otherwise we show a starter message.
-  const baseMessages = activeRunId ? (messagesByRunId[activeRunId] || []) : [];
+  useEffect(() => {
+    if (!activeRunId) {
+      setSessionRunIds([]);
+    } else {
+      setSessionRunIds(prev => prev.includes(activeRunId) ? prev : [activeRunId]);
+    }
+  }, [activeRunId]);
+
+  const baseMessages = sessionRunIds.flatMap(id => messagesByRunId[id] || []);
   
-  const displayMessages = baseMessages.length > 0 ? baseMessages : [
+  const displayMessages = [
     {
       id: 'greeting',
       role: 'assistant',
       content: 'Hello! I am GapFinder AI. How can I help you research today? You can ask me to analyze literature on any complex topic to identify research gaps.',
-      createdAt: new Date().toISOString()
-    }
+      createdAt: new Date(0).toISOString()
+    },
+    ...baseMessages
   ];
 
   const handleSend = async (payload) => {
@@ -36,6 +45,7 @@ export default function ChatDashboard() {
       
       // Temporary local run ID until backend responds
       const tempId = `local_${Date.now()}`;
+      setSessionRunIds(prev => [...prev, tempId]);
       setActiveRunId(tempId);
       
       addMessage(tempId, {
@@ -51,6 +61,8 @@ export default function ChatDashboard() {
       if (!newRunId) {
         throw new Error("Failed to start analysis: No run ID received.");
       }
+      
+      setSessionRunIds(prev => prev.map(id => id === tempId ? newRunId : id));
       
       // Swap tempId with newRunId in state
       useAppStore.setState(state => {
@@ -84,6 +96,19 @@ export default function ChatDashboard() {
           createdAt: new Date().toISOString()
         });
       }
+    }
+  };
+
+  const handleStop = () => {
+    if (pollIntervalRef.current) clearTimeout(pollIntervalRef.current);
+    setIsRunning(false);
+    if (activeRunId) {
+      addMessage(activeRunId, {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: 'Execution terminated by user.',
+        createdAt: new Date().toISOString()
+      });
     }
   };
 
@@ -223,7 +248,7 @@ export default function ChatDashboard() {
       <ChatThread messages={displayMessages} isRunning={isRunning} loadingText={loadingText} />
       
       <div className="shrink-0 pt-2 pb-6 w-full max-w-3xl mx-auto bg-bg z-10 sticky bottom-0">
-        <ChatComposer onSend={handleSend} isRunning={isRunning} />
+        <ChatComposer onSend={handleSend} onStop={handleStop} isRunning={isRunning} />
       </div>
       <DebugPanel />
     </div>

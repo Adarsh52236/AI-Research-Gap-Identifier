@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
-import { Send, Settings2, Loader2, Paperclip, X } from 'lucide-react';
+import { Send, Settings2, Loader2, Paperclip, X, Square } from 'lucide-react';
 import clsx from 'clsx';
 import api from '../../services/api';
 
-export default function ChatComposer({ onSend, isRunning }) {
+export default function ChatComposer({ onSend, onStop, isRunning }) {
   const [query, setQuery] = useState('');
   const [showSettings, setShowSettings] = useState(false);
   const [limit, setLimit] = useState(5);
@@ -137,14 +137,24 @@ export default function ChatComposer({ onSend, isRunning }) {
             <Settings2 size={20} />
           </button>
           
-          <button
-            onClick={handleSend}
-            disabled={!query.trim() || isRunning || isUploading}
-            className="p-2 rounded-xl bg-accent text-white hover:opacity-90 disabled:opacity-50 disabled:bg-muted transition-all"
-            title="Start Analysis"
-          >
-            {isRunning ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} />}
-          </button>
+          {isRunning ? (
+            <button
+              onClick={onStop}
+              className="p-2 rounded-xl bg-red-500/20 text-red-500 hover:bg-red-500/30 transition-all"
+              title="Stop Analysis"
+            >
+              <Square size={20} fill="currentColor" />
+            </button>
+          ) : (
+            <button
+              onClick={handleSend}
+              disabled={!query.trim() || isUploading}
+              className="p-2 rounded-xl bg-accent text-white hover:opacity-90 disabled:opacity-50 disabled:bg-muted transition-all"
+              title="Start Analysis"
+            >
+              <Send size={20} />
+            </button>
+          )}
         </div>
       </div>
     </div>
