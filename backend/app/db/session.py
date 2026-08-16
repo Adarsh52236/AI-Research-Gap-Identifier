@@ -6,8 +6,11 @@ from backend.app.config import settings
 
 # Determine DATABASE_URL
 database_url = settings.DATABASE_URL
-if database_url and database_url.startswith("postgresql://"):
-    database_url = database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+if database_url:
+    if database_url.startswith("postgresql://"):
+        database_url = database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    elif database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql+psycopg://", 1)
 
 if not database_url:
     # Fallback to local SQLite file
