@@ -4,16 +4,12 @@ import useAppStore from '../../store/useAppStore';
 import { MessageSquare, Settings, Sun, Moon, Plus, FileText, ChevronLeft, ChevronRight } from 'lucide-react';
 import clsx from 'clsx';
 
+import ThemeToggle from './ThemeToggle';
+
 export default function Sidebar() {
   const navigate = useNavigate();
   const { ui, setUI, runs, auth } = useAppStore();
   const collapsed = ui.sidebarCollapsed;
-
-  const toggleTheme = () => {
-    const newTheme = ui.theme === 'light' ? 'dark' : 'light';
-    setUI({ theme: newTheme });
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
-  };
 
   const handleNewChat = () => {
     navigate('/app');
@@ -81,14 +77,7 @@ export default function Sidebar() {
 
       {/* Bottom Actions */}
       <div className="p-2 border-t border-border flex flex-col gap-1">
-        <button 
-          onClick={toggleTheme}
-          className="flex items-center gap-2 p-2 rounded-lg text-sm text-muted hover:bg-border hover:text-text transition-colors"
-          title="Toggle Theme"
-        >
-          {ui.theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-          {!collapsed && <span>{ui.theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>}
-        </button>
+        <ThemeToggle collapsed={collapsed} />
         {auth.user ? (
           <button 
             onClick={() => useAppStore.getState().logout()}
