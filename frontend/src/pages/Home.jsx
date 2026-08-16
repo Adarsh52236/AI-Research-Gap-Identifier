@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAppStore from '../store/useAppStore';
 import { searchPapers } from '../services/searchService';
+import LoadingBall from '../components/common/LoadingBall';
 
 export default function Home() {
   const [localQuery, setLocalQuery] = useState('');
@@ -45,7 +46,7 @@ export default function Home() {
       )}
 
       <form onSubmit={handleSearch} className="space-y-6">
-        <div>
+        <div className="relative">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Research Query
           </label>
@@ -57,6 +58,11 @@ export default function Home() {
             onChange={(e) => setLocalQuery(e.target.value)}
             disabled={loading}
           />
+          {loading && (
+            <div className="absolute right-4 -top-8 transform scale-75 pointer-events-none">
+              <LoadingBall />
+            </div>
+          )}
         </div>
         
         <div>
