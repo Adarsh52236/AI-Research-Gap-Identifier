@@ -6,7 +6,6 @@ const useAppStore = create(
     (set, get) => ({
       ui: {
         sidebarCollapsed: false,
-        theme: 'light',
       },
       setUI: (uiUpdates) => set((state) => ({ ui: { ...state.ui, ...uiUpdates } })),
       
