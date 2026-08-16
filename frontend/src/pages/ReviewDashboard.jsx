@@ -44,7 +44,10 @@ export default function ReviewDashboard() {
     <div className="flex-1 flex flex-col h-full bg-[#F5F4ED] text-[#1F1E1D] overflow-y-auto">
       <div className="max-w-3xl w-full mx-auto px-6 py-12">
         <h1 className="text-3xl font-serif mb-2">Annotated Peer-Review Generator</h1>
-        <p className="text-gray-600 mb-8 font-serif">Upload your research paper to receive professional reviewer annotations overlaid on a fresh PDF.</p>
+        <p className="text-gray-600 mb-8 font-serif">
+          Upload your research paper to receive professional reviewer annotations overlaid on a fresh PDF.
+          <span className="block text-xs text-gray-400 mt-2">API: {import.meta.env.VITE_API_BASE_URL || 'None'}</span>
+        </p>
         
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-8">
           <div className="mb-6">

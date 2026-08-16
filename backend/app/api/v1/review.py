@@ -10,7 +10,7 @@ from backend.app.core.reviewer.review_service import ReviewService
 router = APIRouter()
 review_service = ReviewService()
 
-@router.post("/annotate", response_model=ReviewAnnotateResponse)
+@router.post("/annotate/", response_model=ReviewAnnotateResponse)
 async def annotate_review(
     file: UploadFile = File(...),
     prompt: str | None = Form(None),

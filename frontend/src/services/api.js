@@ -3,8 +3,9 @@ import { DEBUG } from '../config/debug';
 import { sanitizeHeaders, shortJson } from '../utils/sanitize';
 import useAppStore from '../store/useAppStore';
 
+const base = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001',
+  baseURL: `${base}/api/v1`,
   headers: {
     'Content-Type': 'application/json',
   },

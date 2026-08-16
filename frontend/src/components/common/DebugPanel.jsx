@@ -29,7 +29,7 @@ export default function DebugPanel() {
         <div className="bg-gray-900 text-green-400 p-4 max-h-64 overflow-y-auto space-y-3 opacity-95">
           <div>
             <strong className="text-gray-400 block mb-1">Environment Config:</strong>
-            VITE_API_BASE_URL: {import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001'}
+            VITE_API_BASE_URL: {import.meta.env.VITE_API_BASE_URL || 'None'}
           </div>
           
           <div>
