@@ -2,7 +2,7 @@ import React from 'react';
 import useAppStore from '../../store/useAppStore';
 import './ThemeToggle.css';
 
-export default function ThemeToggle({ collapsed }) {
+export default function ThemeToggle() {
   const { ui, setUI } = useAppStore();
   const isDark = ui.theme === 'dark';
 
@@ -13,11 +13,8 @@ export default function ThemeToggle({ collapsed }) {
   };
 
   return (
-    <div className={`flex items-center gap-3 p-2 rounded-lg text-sm text-muted hover:bg-border transition-colors ${collapsed ? 'justify-center' : ''}`} title="Toggle Theme">
-      <div 
-        className="toggle-switch shrink-0" 
-        style={{ transform: 'scale(0.5)', transformOrigin: collapsed ? 'center center' : 'left center', margin: '-12px 0', width: collapsed ? '50px' : '100px' }}
-      >
+    <div className="w-full px-1 py-2" title="Toggle Theme">
+      <div className="toggle-switch">
         <label className="switch-label">
           <input 
             type="checkbox" 
@@ -28,7 +25,6 @@ export default function ThemeToggle({ collapsed }) {
           <span className="slider"></span>
         </label>
       </div>
-      {!collapsed && <span>{isDark ? 'Dark Mode' : 'Light Mode'}</span>}
     </div>
   );
 }

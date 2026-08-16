@@ -77,7 +77,7 @@ export default function Sidebar() {
 
       {/* Bottom Actions */}
       <div className="p-2 border-t border-border flex flex-col gap-1">
-        <ThemeToggle collapsed={collapsed} />
+        <ThemeToggle />
         {auth.user ? (
           <button 
             onClick={() => useAppStore.getState().logout()}
