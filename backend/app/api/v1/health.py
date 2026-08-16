@@ -56,3 +56,19 @@ async def deep_health_check():
         response["status"] = "degraded"
         
     return response
+
+@router.get("/debug/db")
+async def debug_db():
+    from backend.app.db.session import SessionLocal
+    from backend.app.db.models import PipelineRunRow
+    from sqlalchemy import select
+    
+    db = SessionLocal()
+    try:
+        # Try to query the session_id column to see if it exists
+        row = db.execute(select(PipelineRunRow).limit(1)).scalar_one_or_none()
+        return {"status": "ok", "message": "Database query succeeded", "row_found": row is not None}
+    except Exception as e:
+        return {"status": "error", "error": str(e), "type": type(e).__name__}
+    finally:
+        db.close()

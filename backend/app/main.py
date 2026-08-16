@@ -16,6 +16,24 @@ if settings.DB_ENABLED and engine:
     dialect = engine.dialect.name
     logger.info(f"Database is ENABLED. Dialect in use: {dialect}")
     try:
+        # Run alembic migrations programmatically
+        from alembic.config import Config
+        from alembic import command
+        import os
+        
+        # Path to alembic.ini
+        backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        alembic_ini_path = os.path.join(backend_dir, "alembic.ini")
+        
+        if os.path.exists(alembic_ini_path):
+            alembic_cfg = Config(alembic_ini_path)
+            # Override sqlalchemy.url to match FastAPI's exact engine URL
+            alembic_cfg.set_main_option("sqlalchemy.url", str(engine.url))
+            command.upgrade(alembic_cfg, "head")
+            logger.info("Successfully ran alembic upgrade head programmatically")
+        else:
+            logger.warning(f"alembic.ini not found at {alembic_ini_path}, skipping migrations")
+            
         Base.metadata.create_all(bind=engine)
     except Exception as e:
         logger.error(f"Database initialization failed: {str(e)}")
