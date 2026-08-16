@@ -33,26 +33,26 @@ export default function Home() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto mt-20 p-6 bg-white rounded-lg shadow-sm border border-gray-100">
-      <h1 className="text-3xl font-semibold mb-6 text-gray-800">Discover Research Gaps</h1>
-      <p className="text-gray-500 mb-8">
+    <div className="max-w-2xl mx-auto mt-20 p-6 bg-panel rounded-lg shadow-sm border border-border">
+      <h1 className="text-3xl font-semibold mb-6 text-text">Discover Research Gaps</h1>
+      <p className="text-muted mb-8">
         Search for papers to download, extract, and mine for insights.
       </p>
       
       {error && (
-        <div className="mb-4 p-3 bg-red-50 text-red-600 rounded">
+        <div className="mb-4 p-3 bg-red-900/20 border border-red-500/50 text-red-400 rounded">
           {error}
         </div>
       )}
 
       <form onSubmit={handleSearch} className="space-y-6">
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-text mb-2">
             Research Query
           </label>
           <input
             type="text"
-            className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full p-3 border border-border rounded focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none bg-bg text-text"
             placeholder="e.g. KV cache optimization for LLMs"
             value={localQuery}
             onChange={(e) => setLocalQuery(e.target.value)}
@@ -66,14 +66,14 @@ export default function Home() {
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-text mb-2">
             Max Results
           </label>
           <input
             type="number"
             min="1"
             max="50"
-            className="w-full p-3 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            className="w-full p-3 border border-border rounded focus:ring-2 focus:ring-accent focus:border-transparent focus:outline-none bg-bg text-text"
             value={limit}
             onChange={(e) => setLimit(Number(e.target.value))}
             disabled={loading}
@@ -82,7 +82,7 @@ export default function Home() {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white font-medium py-3 rounded hover:bg-blue-700 transition disabled:opacity-50"
+          className="w-full bg-accent hover:bg-accent/90 text-text font-medium py-3 rounded transition disabled:opacity-50"
           disabled={loading || !localQuery.trim()}
         >
           {loading ? 'Searching...' : 'Search Papers'}
