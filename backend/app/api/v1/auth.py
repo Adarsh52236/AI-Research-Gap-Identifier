@@ -11,7 +11,7 @@ router = APIRouter()
 
 class UserCreate(BaseModel):
     username: str
-    email: str = None
+    email: str | None = None
     password: str
 
 class LoginRequest(BaseModel):
@@ -25,7 +25,7 @@ class Token(BaseModel):
 class UserResponse(BaseModel):
     id: int
     username: str
-    email: str = None
+    email: str | None = None
 
 @router.post("/signup", response_model=UserResponse)
 def signup(user_in: UserCreate, db: Session = Depends(get_db)):
