@@ -24,12 +24,12 @@ export default function ChatDashboard() {
 
   // Sync URL with state
   useEffect(() => {
-    if (urlRunId && urlRunId !== activeRunId) {
+    if (urlRunId) {
       setActiveRunId(urlRunId);
-    } else if (!urlRunId && activeRunId) {
+    } else {
       setActiveRunId(null);
     }
-  }, [urlRunId, activeRunId, setActiveRunId]);
+  }, [urlRunId, setActiveRunId]);
 
   // Reconstruct history if missing
   useEffect(() => {
@@ -172,6 +172,7 @@ export default function ChatDashboard() {
       });
 
       startPolling(newRunId);
+      navigate(`/app/run/${newRunId}`, { replace: !validSessionId });
 
     } catch (error) {
       console.error(error);
