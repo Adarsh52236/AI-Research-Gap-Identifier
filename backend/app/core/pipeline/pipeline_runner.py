@@ -37,6 +37,22 @@ class PipelineRunner:
         self.llm_client = GroqLLMClient()
         self.artifact_store = get_artifact_store()
 
+    def _update_step_status(self, run_id: str, status: PipelineRunStatus, step: str, step_state: str, error: str = None):
+        if step_state in ["running", "pending"]:
+            status.current_step = step
+            status.step_started_at = datetime.utcnow().isoformat() + "Z"
+            
+        status.step_statuses[step] = step_state
+        status.last_updated_at = datetime.utcnow().isoformat() + "Z"
+        status.heartbeat_counter += 1
+        
+        if error:
+            status.errors.append(f"{step} error: {error}")
+            self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": step, "error": error})
+        
+        self.run_store.update_run(run_id, status)
+
+
     async def run(self, request: PipelineRunRequest, user_id: int | None = None) -> PipelineRunStatus:
         timestamp = str(time.time())
         run_id = request.run_id if request.run_id else hashlib.sha256((timestamp + request.query).encode()).hexdigest()[:12]
@@ -56,8 +72,7 @@ class PipelineRunner:
         
         try:
             # 0. Preprocess
-            status.current_step = "preprocess"
-            self.run_store.update_run(run_id, status)
+            self._update_step_status(run_id, status, "preprocess", "running")
             
             parsed_prompt = await self.llm_client.parse_user_prompt_json(request.query, request.user_document_text)
             
@@ -84,10 +99,11 @@ class PipelineRunner:
             if optimized and optimized.strip():
                 request.query = optimized.strip()
             
+            self._update_step_status(run_id, status, "preprocess", "completed")
+            
             # 1. Search
             if "search" in request.steps:
-                status.current_step = "search"
-                self.run_store.update_run(run_id, status)
+                self._update_step_status(run_id, status, "search", "running")
                 if SessionLocal:
                     with SessionLocal() as db:
                         try:
@@ -108,13 +124,14 @@ class PipelineRunner:
                 self.run_store.update_run(run_id, status)
                 
                 self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "search", "msg": f"Found {len(papers_to_process)} papers"})
+                
+                self._update_step_status(run_id, status, "search", "completed")
 
             valid_paper_ids = []
                 
             # 2. Download
             if "download" in request.steps:
-                status.current_step = "download"
-                self.run_store.update_run(run_id, status)
+                self._update_step_status(run_id, status, "download", "running")
                 for p in papers_to_process:
                     if not p.pdf_url:
                         continue
@@ -148,13 +165,14 @@ class PipelineRunner:
                     except Exception as e:
                         err = f"Download failed for {p.paper_id}: {str(e)}"
                         status.errors.append(err)
-                        self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "download", "paper_id": p.paper_id, "error": str(e)})
-                self.run_store.update_run(run_id, status)
+                        self._update_step_status(run_id, status, "download", "failed", err)
+                
+                if status.step_statuses.get("download") != "failed":
+                    self._update_step_status(run_id, status, "download", "completed")
 
             # 3. Extract
             if "extract" in request.steps:
-                status.current_step = "extract"
-                self.run_store.update_run(run_id, status)
+                self._update_step_status(run_id, status, "extract", "running")
                 extracted_ids = []
                 for p in papers_to_process:
                     if p.paper_id not in valid_paper_ids:
@@ -195,14 +213,15 @@ class PipelineRunner:
                     except Exception as e:
                         err = f"Extract failed for {p.paper_id}: {str(e)}"
                         status.errors.append(err)
-                        self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "extract", "paper_id": p.paper_id, "error": str(e)})
+                        self._update_step_status(run_id, status, "extract", "failed", err)
                 valid_paper_ids = extracted_ids
-                self.run_store.update_run(run_id, status)
+                
+                if status.step_statuses.get("extract") != "failed":
+                    self._update_step_status(run_id, status, "extract", "completed")
 
             # 4. Mine
             if "mine" in request.steps:
-                status.current_step = "mine"
-                self.run_store.update_run(run_id, status)
+                self._update_step_status(run_id, status, "mine", "running")
                 mined_ids = []
                 for pid in valid_paper_ids:
                     try:
@@ -226,39 +245,46 @@ class PipelineRunner:
                     except Exception as e:
                         err = f"Mine failed for {pid}: {str(e)}"
                         status.errors.append(err)
-                        self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "mine", "paper_id": pid, "error": str(e)})
+                        self._update_step_status(run_id, status, "mine", "failed", err)
                 
                 valid_paper_ids = mined_ids
-                self.run_store.update_run(run_id, status)
+                
+                self._update_step_status(run_id, status, "mine", "completed")
 
             # 5. Index
             if "index" in request.steps:
-                status.current_step = "index"
-                self.run_store.update_run(run_id, status)
+                self._update_step_status(run_id, status, "index", "running")
                 for pid in valid_paper_ids:
                     try:
+                        import asyncio
                         from fastapi.concurrency import run_in_threadpool
-                        res = await run_in_threadpool(
+                        res = await asyncio.wait_for(run_in_threadpool(
                             self.indexer.index_paper_ids,
                             paper_ids=[pid],
                             processed_sections_paths=None,
                             sections_to_index=["ABSTRACT", "INTRODUCTION", "METHODS", "RESULTS", "DISCUSSION", "CONCLUSION"],
                             force_reindex=request.force_reindex,
                             save_text=True
-                        )
+                        ), timeout=settings.INDEX_STEP_MAX_SECONDS)
                         # We don't have a way to know if it skipped from the res exactly unless we check skipped_count
                         if res.indexed_count > 0 or res.skipped_count > 0:
                             status.papers_indexed += 1
                     except Exception as e:
-                        err = f"Index failed for {pid}: {str(e)}"
-                        status.errors.append(err)
-                        self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "index", "paper_id": pid, "error": str(e)})
-                self.run_store.update_run(run_id, status)
+                        import asyncio
+                        if isinstance(e, asyncio.TimeoutError):
+                            err = f"Index timed out for {pid} after {settings.INDEX_STEP_MAX_SECONDS}s"
+                            self._update_step_status(run_id, status, "index", "failed", err)
+                            break # stop indexing remaining papers
+                        else:
+                            err = f"Index failed for {pid}: {str(e)}"
+                            self._update_step_status(run_id, status, "index", "failed", err)
+                
+                if status.step_statuses.get("index") != "failed":
+                    self._update_step_status(run_id, status, "index", "completed")
 
             # 6. Report
             if "report" in request.steps:
-                status.current_step = "report"
-                self.run_store.update_run(run_id, status)
+                self._update_step_status(run_id, status, "report", "running")
                 try:
                     rep_req = GapReportRequest(
                         paper_ids=valid_paper_ids[:request.top_k_papers_for_report] if hasattr(request, 'top_k_papers_for_report') else valid_paper_ids,
@@ -295,8 +321,12 @@ class PipelineRunner:
         except Exception as e:
             status.status = "failed"
             status.errors.append(f"Pipeline crashed: {str(e)}")
+        finally:
+            if not status.finished_at:
+                status.finished_at = datetime.utcnow().isoformat() + "Z"
+            status.current_step = None
+            if status.status not in ["completed", "failed"]:
+                status.status = "failed" # Ensure terminal
+            self.run_store.update_run(run_id, status)
             
-        status.finished_at = datetime.utcnow().isoformat()
-        status.current_step = None
-        self.run_store.update_run(run_id, status)
         return status

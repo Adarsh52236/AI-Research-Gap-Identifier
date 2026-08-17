@@ -232,6 +232,23 @@ export default function ChatDashboard() {
            setLoadingText(`Running step: ${statusRes.current_step}...`);
         }
 
+        // Stuck-run guard
+        if (statusRes.last_updated_at && statusRes.status !== 'completed' && statusRes.status !== 'failed') {
+          const lastUpdated = new Date(statusRes.last_updated_at).getTime();
+          const now = Date.now();
+          if (now - lastUpdated > 5 * 60 * 1000) { // 5 minutes
+            setIsRunning(false);
+            if (DEBUG) console.log(`[POLL STOP] reason=stuck_run_timeout`);
+            addMessage(runId, {
+              id: Date.now().toString(),
+              role: 'assistant',
+              content: 'Analysis timed out. The backend process may have been interrupted or restarted. Please try again.',
+              createdAt: new Date().toISOString()
+            });
+            return;
+          }
+        }
+
         if (statusRes.status === 'completed' || statusRes.status === 'failed') {
           setIsRunning(false);
           

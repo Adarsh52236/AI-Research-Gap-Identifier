@@ -115,6 +115,22 @@ def create_or_update_run(db: Session, status: PipelineRunStatus) -> PipelineRunR
             row.finished_at = datetime.fromisoformat(status.finished_at.replace("Z", "+00:00"))
         except:
             pass
+            
+    if status.last_updated_at:
+        try:
+            row.last_updated_at = datetime.fromisoformat(status.last_updated_at.replace("Z", "+00:00"))
+        except:
+            pass
+            
+    if status.step_started_at:
+        try:
+            row.step_started_at = datetime.fromisoformat(status.step_started_at.replace("Z", "+00:00"))
+        except:
+            pass
+
+    row.step_progress_json = json.dumps(status.step_progress)
+    row.step_statuses_json = json.dumps(status.step_statuses)
+    row.heartbeat_counter = status.heartbeat_counter
         
     db.commit()
     db.refresh(row)

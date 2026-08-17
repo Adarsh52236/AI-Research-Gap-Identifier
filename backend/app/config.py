@@ -36,10 +36,11 @@ class Settings(BaseSettings):
     DB_ENABLED: bool = True
     
     # Deployment & Security
-    ENVIRONMENT: str = "development"
+    ENVIRONMENT: str = "production" if os.getenv("RENDER") else "development"
     ALLOWED_ORIGINS: str = "http://localhost:5173"
     ALLOW_CREDENTIALS: bool = False
     LOG_LEVEL: str = "INFO"
+    INDEX_STEP_MAX_SECONDS: int = 300
     
     # Backends
     VECTOR_BACKEND: str = "chroma"  # chroma or pgvector

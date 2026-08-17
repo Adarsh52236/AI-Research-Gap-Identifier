@@ -195,6 +195,21 @@ class DBRunStore(RunStore):
                 )
                 if row.finished_at:
                     status.finished_at = row.finished_at.isoformat() + "Z"
+                if row.last_updated_at:
+                    status.last_updated_at = row.last_updated_at.isoformat() + "Z"
+                if row.step_started_at:
+                    status.step_started_at = row.step_started_at.isoformat() + "Z"
+                if row.step_progress_json:
+                    try:
+                        status.step_progress = json.loads(row.step_progress_json)
+                    except:
+                        pass
+                if row.step_statuses_json:
+                    try:
+                        status.step_statuses = json.loads(row.step_statuses_json)
+                    except:
+                        pass
+                status.heartbeat_counter = row.heartbeat_counter
                 if row.errors_json:
                     try:
                         status.errors = json.loads(row.errors_json)
@@ -285,6 +300,6 @@ class DBRunStore(RunStore):
 
 def get_run_store() -> RunStore:
     db_url = settings.DATABASE_URL
-    if db_url and "postgres" in db_url.lower() and settings.DB_ENABLED:
+    if settings.ENVIRONMENT == "production" or (db_url and "postgres" in db_url.lower() and settings.DB_ENABLED):
         return DBRunStore()
     return LocalRunStore()

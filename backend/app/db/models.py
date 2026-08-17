@@ -98,6 +98,11 @@ class PipelineRunRow(Base):
     events_json = Column(Text, nullable=True)
     started_at = Column(DateTime, default=datetime.utcnow)
     finished_at = Column(DateTime, nullable=True)
+    last_updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    step_started_at = Column(DateTime, nullable=True)
+    step_progress_json = Column(Text, nullable=True)
+    step_statuses_json = Column(Text, nullable=True)
+    heartbeat_counter = Column(Integer, default=0)
 
     user = relationship("User", back_populates="pipeline_runs")
 

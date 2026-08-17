@@ -200,6 +200,11 @@ class PipelineRunStatus(BaseModel):
     current_step: Optional[str] = None
     started_at: str
     finished_at: Optional[str] = None
+    last_updated_at: Optional[str] = None
+    step_started_at: Optional[str] = None
+    step_progress: dict = Field(default_factory=dict)
+    step_statuses: dict = Field(default_factory=dict)
+    heartbeat_counter: int = 0
     query: str
     steps: list[str]
     papers_found: int = 0
