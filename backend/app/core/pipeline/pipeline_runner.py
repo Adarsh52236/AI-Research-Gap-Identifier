@@ -52,8 +52,6 @@ class PipelineRunner:
         )
         self.run_store.create_run(status)
         
-        db = SessionLocal() if SessionLocal else None
-        
         papers_to_process = []
         
         try:
@@ -90,11 +88,12 @@ class PipelineRunner:
             if "search" in request.steps:
                 status.current_step = "search"
                 self.run_store.update_run(run_id, status)
-                if db:
-                    try:
-                        crud.create_or_update_run(db, status)
-                    except Exception as e:
-                        logger.error(f"Database error writing run status {run_id}: {e}")
+                if SessionLocal:
+                    with SessionLocal() as db:
+                        try:
+                            crud.create_or_update_run(db, status)
+                        except Exception as e:
+                            logger.error(f"Database error writing run status {run_id}: {e}")
                 self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "search", "msg": f"Searching for {request.query}"})
                 
                 search_results = await self.fetcher.search_all(
@@ -108,7 +107,6 @@ class PipelineRunner:
                 status.papers_found = len(papers_to_process)
                 self.run_store.update_run(run_id, status)
                 
-                self.run_store.update_run(run_id, status)
                 self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "search", "msg": f"Found {len(papers_to_process)} papers"})
 
             valid_paper_ids = []
@@ -139,11 +137,12 @@ class PipelineRunner:
                             if settings.ARTIFACT_BACKEND.lower() == "supabase":
                                 remote_path = self.artifact_store.upload_file(dl_res.local_path, "documents", f"{p.paper_id}.pdf")
                                 dl_res.storage_path = remote_path
-                            if db:
-                                try:
-                                    crud.save_download_artifact(db, dl_res)
-                                except Exception as e:
-                                    logger.error(f"DB error save_download_artifact for {p.paper_id}: {e}")
+                            if SessionLocal:
+                                with SessionLocal() as db:
+                                    try:
+                                        crud.save_download_artifact(db, dl_res)
+                                    except Exception as e:
+                                        logger.error(f"DB error save_download_artifact for {p.paper_id}: {e}")
                             status.papers_downloaded += 1
                         valid_paper_ids.append(p.paper_id)
                     except Exception as e:
@@ -185,11 +184,12 @@ class PipelineRunner:
                                         ex_res.storage_path = remote_path_sec
                                     else:
                                         ex_res.storage_path = remote_path
-                                if db:
-                                    try:
-                                        crud.save_extraction_artifact(db, ex_res)
-                                    except Exception as e:
-                                        logger.error(f"DB error save_extraction_artifact for {p.paper_id}: {e}")
+                                if SessionLocal:
+                                    with SessionLocal() as db:
+                                        try:
+                                            crud.save_extraction_artifact(db, ex_res)
+                                        except Exception as e:
+                                            logger.error(f"DB error save_extraction_artifact for {p.paper_id}: {e}")
                                 status.papers_extracted += 1
                                 extracted_ids.append(p.paper_id)
                     except Exception as e:
@@ -259,41 +259,32 @@ class PipelineRunner:
             if "report" in request.steps:
                 status.current_step = "report"
                 self.run_store.update_run(run_id, status)
-                if len(valid_paper_ids) > 0 and (not request.force_report):
-                    # check if we can resume/skip report? The prompt says: "if report exists, skip report generation (unless force_report)"
-                    # We need to see if a report exists for this run_id? Wait, the report is saved via GapReportService, which saves it by timestamp usually.
-                    # Or do we save it by run_id?
-                    # The prompt says: "if report exists, skip (unless force_report)".
-                    # Actually, we don't have a specific report path for a query yet, GapReportService just generates it. 
-                    # If they run the pipeline again on the same query, it generates a new run_id.
-                    # But the requirement says "if report exists, skip (unless force_report)". Let's just always generate if force_report is False but we don't have a mapping. 
-                    # Actually, GapReportService doesn't have a deterministic filename (it uses `int(time.time())`). 
-                    # So we'll just run it. We can't skip it cleanly. Let's just run it.
-                    try:
-                        rep_req = GapReportRequest(
-                            paper_ids=valid_paper_ids[:request.top_k_papers_for_report] if hasattr(request, 'top_k_papers_for_report') else valid_paper_ids,
-                            query=request.query,
-                            user_document_text=request.user_document_text[:4000] if request.user_document_text else None,
-                            save_report=True
-                        )
-                        rep_res = await self.report_generator.generate_report(rep_req)
-                        if settings.ARTIFACT_BACKEND.lower() == "supabase" and rep_res.report_md_path:
-                            remote_path = self.artifact_store.upload_file(rep_res.report_md_path, "documents", f"report_{run_id}.md")
-                            rep_res.storage_path = remote_path
-                        if db:
+                try:
+                    rep_req = GapReportRequest(
+                        paper_ids=valid_paper_ids[:request.top_k_papers_for_report] if hasattr(request, 'top_k_papers_for_report') else valid_paper_ids,
+                        query=request.query,
+                        user_document_text=request.user_document_text[:4000] if request.user_document_text else None,
+                        save_report=True
+                    )
+                    rep_res = await self.report_generator.generate_report(rep_req)
+                    if settings.ARTIFACT_BACKEND.lower() == "supabase" and rep_res.report_md_path:
+                        remote_path = self.artifact_store.upload_file(rep_res.report_md_path, "documents", f"report_{run_id}.md")
+                        rep_res.storage_path = remote_path
+                    if SessionLocal:
+                        with SessionLocal() as db:
                             try:
                                 crud.save_report(db, run_id, rep_res)
                             except Exception as e:
                                 logger.error(f"DB error save_report for {run_id}: {e}")
-                        status.report_path = rep_res.report_md_path
-                        self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "report", "msg": "Report generated"})
-                    except Exception as e:
-                        err = f"Report generation failed: {str(e)}"
-                        status.errors.append(err)
-                        status.status = "failed"
-                        self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "report", "error": str(e)})
-                        self.run_store.update_run(run_id, status)
-                        return status
+                    status.report_path = rep_res.report_md_path
+                    self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "report", "msg": "Report generated"})
+                except Exception as e:
+                    err = f"Report generation failed: {str(e)}"
+                    status.errors.append(err)
+                    status.status = "failed"
+                    self.run_store.append_event(run_id, {"ts": datetime.utcnow().isoformat(), "step": "report", "error": str(e)})
+                    self.run_store.update_run(run_id, status)
+                    return status
                 
             # Finish
             if len(status.errors) > len(papers_to_process) and len(papers_to_process) > 0:

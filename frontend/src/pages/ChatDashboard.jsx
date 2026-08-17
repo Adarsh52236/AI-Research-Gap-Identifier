@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import ChatThread from '../components/chat/ChatThread';
 import ChatComposer from '../components/chat/ChatComposer';
 import { runsService } from '../services/runsService';
@@ -7,6 +8,9 @@ import { DEBUG } from '../config/debug';
 import DebugPanel from '../components/common/DebugPanel';
 
 export default function ChatDashboard() {
+  const { runId: urlRunId } = useParams();
+  const navigate = useNavigate();
+
   const { 
     activeRunId, setActiveRunId, 
     messagesByRunId, addMessage, updateMessage,
@@ -17,6 +21,65 @@ export default function ChatDashboard() {
   const [loadingText, setLoadingText] = useState('');
   const pollIntervalRef = useRef(null);
   const [sessionRunIds, setSessionRunIds] = useState([]);
+
+  // Sync URL with state
+  useEffect(() => {
+    if (urlRunId && urlRunId !== activeRunId) {
+      setActiveRunId(urlRunId);
+    } else if (!urlRunId && activeRunId) {
+      setActiveRunId(null);
+    }
+  }, [urlRunId, activeRunId, setActiveRunId]);
+
+  // Reconstruct history if missing
+  useEffect(() => {
+    if (!urlRunId) return;
+    
+    // Check if we already have messages for this run
+    if (messagesByRunId[urlRunId] && messagesByRunId[urlRunId].length > 0) return;
+    
+    const run = runs.find(r => r.run_id === urlRunId);
+    if (!run) return;
+
+    // Add user query
+    addMessage(urlRunId, {
+      id: `${urlRunId}_q`,
+      role: 'user',
+      content: run.query,
+      createdAt: run.started_at || new Date().toISOString()
+    });
+
+    if (run.status === 'completed') {
+      // Fetch report
+      runsService.getRunReport(urlRunId).then(res => {
+        addMessage(urlRunId, {
+          id: `${urlRunId}_r`,
+          role: 'assistant',
+          content: res.content,
+          createdAt: run.finished_at || new Date().toISOString()
+        });
+      }).catch(() => {
+        addMessage(urlRunId, {
+          id: `${urlRunId}_e`,
+          role: 'assistant',
+          content: 'Analysis completed, but report could not be fetched.',
+          createdAt: new Date().toISOString()
+        });
+      });
+    } else if (run.status === 'failed') {
+      addMessage(urlRunId, {
+        id: `${urlRunId}_f`,
+        role: 'assistant',
+        content: `Analysis failed. Errors:\n\n${JSON.stringify(run.errors) || 'Unknown error'}`,
+        createdAt: run.finished_at || new Date().toISOString()
+      });
+    } else if (run.status === 'running' || run.status === 'pending') {
+      // It's still running, maybe we should start polling?
+      setIsRunning(true);
+      setLoadingText('Resuming analysis tracking...');
+      startPolling(urlRunId);
+    }
+  }, [urlRunId, runs, messagesByRunId, addMessage]);
 
   useEffect(() => {
     if (!activeRunId) {
@@ -138,7 +201,7 @@ export default function ChatDashboard() {
     }
   };
 
-  const startPolling = (runId) => {
+  function startPolling(runId) {
     if (pollIntervalRef.current) clearTimeout(pollIntervalRef.current);
     
     const pollSessionId = crypto.randomUUID();

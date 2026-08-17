@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Landing from './pages/Landing';
 import ChatDashboard from './pages/ChatDashboard';
-import RunViewer from './pages/RunViewer';
 import ReviewDashboard from './pages/ReviewDashboard';
 import AppShell from './components/shell/AppShell';
 import { runsService } from './services/runsService';
@@ -31,7 +30,7 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/app" element={<AppShell />}>
           <Route index element={<ChatDashboard />} />
-          <Route path="run/:runId" element={<RunViewer />} />
+          <Route path="run/:runId" element={<ChatDashboard />} />
           <Route path="review" element={<ReviewDashboard />} />
         </Route>
       </Routes>
