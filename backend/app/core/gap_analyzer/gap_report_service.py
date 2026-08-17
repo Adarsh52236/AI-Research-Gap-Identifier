@@ -90,28 +90,32 @@ class GapReportService:
                 logger.warning(f"Failed to load gap signals for {pid}: {e}")
                 
         if request.use_vector_search and request.query:
-            res = self.search_service.search(
-                query_text=request.query,
-                top_k=request.top_k_sections_from_vector_search,
-                filter_source=None,
-                filter_year_from=None,
-                filter_year_to=None,
-                filter_section=None
-            )
-            for m in res.results:
-                if m.paper_id in request.paper_ids:
-                    eid = f"vec_{m.id.replace(':', '_')}"
-                    if eid not in evidence_ids:
-                        evidence_pool.append(EvidenceItem(
-                            evidence_id=eid,
-                            paper_id=m.paper_id,
-                            source_type="section_excerpt",
-                            section=m.section,
-                            score=m.score,
-                            text=self._truncate(m.preview or ""),
-                            metadata=m.metadata
-                        ))
-                        evidence_ids.add(eid)
+            try:
+                res = self.search_service.search(
+                    query_text=request.query,
+                    top_k=request.top_k_sections_from_vector_search,
+                    filter_source=None,
+                    filter_year_from=None,
+                    filter_year_to=None,
+                    filter_section=None
+                )
+                for m in res.results:
+                    if m.paper_id in request.paper_ids:
+                        eid = f"vec_{m.id.replace(':', '_')}"
+                        if eid not in evidence_ids:
+                            evidence_pool.append(EvidenceItem(
+                                evidence_id=eid,
+                                paper_id=m.paper_id,
+                                source_type="section_excerpt",
+                                section=m.section,
+                                score=m.score,
+                                text=self._truncate(m.preview or ""),
+                                metadata=m.metadata
+                            ))
+                            evidence_ids.add(eid)
+            except Exception as e:
+                logger.warning(f"Vector search failed during report generation: {e}. Proceeding with gap signals only.")
+                request.use_vector_search = False
                         
         if not evidence_pool:
             raise HTTPException(status_code=404, detail="No evidence found for provided papers.")

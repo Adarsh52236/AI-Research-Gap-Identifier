@@ -1,7 +1,13 @@
 """Embedding Generator."""
 import math
-import torch
-torch.set_num_threads(1)
+try:
+    import torch
+except Exception:
+    torch = None
+
+if torch is not None:
+    torch.set_num_threads(1)
+
 from backend.app.config import settings
 from backend.app.utils.logger import get_logger
 
@@ -15,9 +21,16 @@ class EmbeddingGenerator:
         
     def _load_model(self):
         if self.model is None:
+            if torch is None:
+                raise RuntimeError("PyTorch (torch) is required for sentence-transformers embeddings.")
             logger.info(f"Loading embedding model: {settings.EMBEDDING_MODEL_NAME}")
             from sentence_transformers import SentenceTransformer
-            self.model = SentenceTransformer(settings.EMBEDDING_MODEL_NAME, device=settings.EMBEDDING_DEVICE)
+            
+            device = settings.EMBEDDING_DEVICE
+            if device == "auto":
+                device = "cuda" if torch is not None and torch.cuda.is_available() else "cpu"
+                
+            self.model = SentenceTransformer(settings.EMBEDDING_MODEL_NAME, device=device)
             
     def _normalize(self, vector: list[float]) -> list[float]:
         """Pure python L2 normalization."""
