@@ -30,8 +30,9 @@ def upgrade() -> None:
     )
     op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
     op.create_index(op.f('ix_users_username'), 'users', ['username'], unique=True)
-    op.add_column('pipeline_runs', sa.Column('user_id', sa.Integer(), nullable=True))
-    op.create_foreign_key(None, 'pipeline_runs', 'users', ['user_id'], ['id'])
+    with op.batch_alter_table('pipeline_runs') as batch_op:
+        batch_op.add_column(sa.Column('user_id', sa.Integer(), nullable=True))
+        batch_op.create_foreign_key('fk_pipeline_runs_user_id', 'users', ['user_id'], ['id'])
     # ### end Alembic commands ###
 
 

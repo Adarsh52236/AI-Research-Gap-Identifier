@@ -107,6 +107,17 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_reports_id'), 'reports', ['id'], unique=False)
+    op.create_table('paper_section_vectors',
+        sa.Column('id', sa.TEXT(), nullable=False),
+        sa.Column('paper_id', sa.TEXT(), nullable=False),
+        sa.Column('title', sa.TEXT(), nullable=True),
+        sa.Column('source', sa.TEXT(), nullable=True),
+        sa.Column('year', sa.INTEGER(), nullable=True),
+        sa.Column('section', sa.TEXT(), nullable=False),
+        sa.Column('content', sa.TEXT(), nullable=True),
+        sa.Column('created_at', sa.DateTime(), nullable=True),
+        sa.PrimaryKeyConstraint('id')
+    )
     # ### end Alembic commands ###
 
 
@@ -126,6 +137,7 @@ def downgrade() -> None:
     op.drop_table('download_artifacts')
     op.drop_index(op.f('ix_pipeline_runs_run_id'), table_name='pipeline_runs')
     op.drop_table('pipeline_runs')
+    op.drop_table('paper_section_vectors')
     op.drop_index(op.f('ix_papers_paper_id'), table_name='papers')
     op.drop_table('papers')
     # ### end Alembic commands ###
