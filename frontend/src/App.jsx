@@ -30,7 +30,7 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/app" element={<AppShell />}>
           <Route index element={<ChatDashboard />} />
-          <Route path="run/:runId" element={<ChatDashboard />} />
+          <Route path="chat/:sessionId" element={<ChatDashboard />} />
           <Route path="review" element={<ReviewDashboard />} />
         </Route>
       </Routes>

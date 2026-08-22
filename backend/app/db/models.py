@@ -119,6 +119,31 @@ class ReportRow(Base):
     storage_path = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+class ChatSession(Base):
+    __tablename__ = "chat_sessions"
+    
+    id = Column(String, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    title = Column(String, nullable=False, default="New Chat")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    messages = relationship("ChatMessage", back_populates="session", cascade="all, delete-orphan")
+    user = relationship("User")
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+    
+    id = Column(String, primary_key=True, index=True)
+    session_id = Column(String, ForeignKey("chat_sessions.id"), nullable=False, index=True)
+    role = Column(String, nullable=False) # 'user', 'assistant', 'system'
+    content = Column(Text, nullable=False)
+    run_id = Column(String, ForeignKey("pipeline_runs.run_id"), nullable=True) # Optional link to a heavy background run
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    session = relationship("ChatSession", back_populates="messages")
+    run = relationship("PipelineRunRow")
+
 class PaperSectionVector(Base):
     __tablename__ = "paper_section_vectors"
     

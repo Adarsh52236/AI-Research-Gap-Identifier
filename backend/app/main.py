@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.app.config import settings
 from backend.app.db.session import engine
 from backend.app.db.models import Base
-from backend.app.api.v1 import search, upload, analysis, report, health, papers, auth, review
+from backend.app.api.v1 import search, upload, analysis, report, health, papers, auth, review, chat
 
 from backend.app.utils.logger import get_logger
 logger = get_logger(__name__)
@@ -90,3 +90,4 @@ app.include_router(health.router, prefix="/api/v1/health", tags=["health"])
 app.include_router(papers.router, prefix="/api/v1/papers", tags=["papers"])
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(review.router, prefix="/api/v1/review", tags=["review"])
+app.include_router(chat.router, prefix="/api/v1/chat", tags=["chat"])

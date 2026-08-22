@@ -24,9 +24,9 @@ class Settings(BaseSettings):
     # Phase 5
     REPORTS_DIR: str = "storage/reports"
     GROQ_API_KEY: str | None = None
-    GROQ_MODEL: str = "llama-3.3-70b-versatile"
+    GROQ_MODEL: str = "openai/gpt-oss-120b"
     GROQ_TEMPERATURE: float = 0.2
-    GROQ_MAX_TOKENS: int = 1200
+    GROQ_MAX_TOKENS: int = 3000
     GROQ_TIMEOUT_SECONDS: int = 60
     EVIDENCE_MAX_CHARS: int = 900
     REPORT_TOP_K_GAPS: int = 7

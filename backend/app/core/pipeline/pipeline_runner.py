@@ -163,12 +163,15 @@ class PipelineRunner:
                             status.papers_downloaded += 1
                         valid_paper_ids.append(p.paper_id)
                     except Exception as e:
-                        err = f"Download failed for {p.paper_id}: {str(e)}"
+                        err = f"download error: Download failed for {p.paper_id}: {str(e)}"
                         status.errors.append(err)
-                        self._update_step_status(run_id, status, "download", "failed", err)
+                        logger.warning(err)
                 
-                if status.step_statuses.get("download") != "failed":
+                if len(valid_paper_ids) > 0:
                     self._update_step_status(run_id, status, "download", "completed")
+                else:
+                    self._update_step_status(run_id, status, "download", "failed", "All downloads failed")
+                    # If all failed, we might want to continue with user doc only, or fail pipeline. We'll let it continue.
 
             # 3. Extract
             if "extract" in request.steps:

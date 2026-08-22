@@ -3,120 +3,77 @@ import { useParams, useNavigate } from 'react-router-dom';
 import ChatThread from '../components/chat/ChatThread';
 import ChatComposer from '../components/chat/ChatComposer';
 import { runsService } from '../services/runsService';
+import { chatService } from '../services/chatService';
 import useAppStore from '../store/useAppStore';
+import useChatStore from '../store/useChatStore';
 import { DEBUG } from '../config/debug';
 import DebugPanel from '../components/common/DebugPanel';
 
 export default function ChatDashboard() {
-  const { runId: urlRunId } = useParams();
+  const { sessionId: urlSessionId } = useParams();
   const navigate = useNavigate();
 
+  const { addRun, updateRun, runs } = useAppStore();
   const { 
-    activeRunId, setActiveRunId, 
-    messagesByRunId, addMessage, updateMessage,
-    addRun, updateRun, runs
-  } = useAppStore();
+    sessions, activeSessionId, setActiveSessionId, 
+    messagesBySessionId, fetchMessages, createSession,
+    addLocalMessage, updateLocalMessage
+  } = useChatStore();
   
   const [isRunning, setIsRunning] = useState(false);
   const [loadingText, setLoadingText] = useState('');
   const pollIntervalRef = useRef(null);
-  const [sessionRunIds, setSessionRunIds] = useState([]);
 
   // Sync URL with state
   useEffect(() => {
-    if (urlRunId) {
-      setActiveRunId(urlRunId);
+    if (urlSessionId) {
+      setActiveSessionId(urlSessionId);
+      if (!messagesBySessionId[urlSessionId]) {
+        fetchMessages(urlSessionId);
+      }
     } else {
-      setActiveRunId(null);
+      setActiveSessionId(null);
     }
-  }, [urlRunId, setActiveRunId]);
+  }, [urlSessionId, setActiveSessionId, fetchMessages, messagesBySessionId]);
 
-  // Reconstruct history if missing
+  // Handle Polling Persistence (Issue 2)
   useEffect(() => {
-    if (!urlRunId) return;
-    
-    // Check if we already have messages for this run
-    if (messagesByRunId[urlRunId] && messagesByRunId[urlRunId].length > 0) return;
-    
-    const run = runs.find(r => r.run_id === urlRunId);
-    if (!run) return;
-
-    // Add user query
-    addMessage(urlRunId, {
-      id: `${urlRunId}_q`,
-      role: 'user',
-      content: run.query,
-      createdAt: run.started_at || new Date().toISOString()
-    });
-
-    if (run.status === 'completed') {
-      // Fetch report
-      runsService.getRunReport(urlRunId).then(res => {
-        addMessage(urlRunId, {
-          id: `${urlRunId}_r`,
-          role: 'assistant',
-          content: res.content,
-          createdAt: run.finished_at || new Date().toISOString()
-        });
-      }).catch(() => {
-        addMessage(urlRunId, {
-          id: `${urlRunId}_e`,
-          role: 'assistant',
-          content: 'Analysis completed, but report could not be fetched.',
-          createdAt: new Date().toISOString()
-        });
-      });
-    } else if (run.status === 'failed') {
-      addMessage(urlRunId, {
-        id: `${urlRunId}_f`,
-        role: 'assistant',
-        content: `Analysis failed. Errors:\n\n${JSON.stringify(run.errors) || 'Unknown error'}`,
-        createdAt: run.finished_at || new Date().toISOString()
-      });
-    } else if (run.status === 'running' || run.status === 'pending') {
-      // It's still running, maybe we should start polling?
-      setIsRunning(true);
-      setLoadingText('Resuming analysis tracking...');
-      startPolling(urlRunId);
-    }
-  }, [urlRunId, runs, messagesByRunId, addMessage]);
-
-  useEffect(() => {
-    if (!activeRunId) {
-      setSessionRunIds([]);
-    } else {
-      const activeRun = runs.find(r => r.run_id === activeRunId);
+    if (urlSessionId && !isRunning) {
+      // Check if there is an active run for this session
+      const activeRun = runs.find(r => r.session_id === urlSessionId && ['pending', 'running'].includes(r.status));
       if (activeRun) {
-        const sId = activeRun.session_id || activeRun.run_id;
-        const sessionRuns = runs
-          .filter(r => (r.session_id || r.run_id) === sId)
-          .sort((a, b) => new Date(a.started_at) - new Date(b.started_at))
-          .map(r => r.run_id);
-          
-        setSessionRunIds(prev => {
-          // Keep tempIds if they exist
-          const tempIds = prev.filter(id => id.startsWith('local_'));
-          const newSessionRunIds = [...sessionRuns, ...tempIds];
-          // Only update if arrays are different to avoid infinite loops
-          if (JSON.stringify(prev) !== JSON.stringify(newSessionRunIds)) {
-            return newSessionRunIds;
-          }
-          return prev;
-        });
-      } else {
-        setSessionRunIds(prev => prev.includes(activeRunId) ? prev : [activeRunId]);
+        setIsRunning(true);
+        setLoadingText('Resuming analysis tracking...');
+        
+        // Ensure there is a pending message in the UI to attach the loader to
+        const msgs = messagesBySessionId[urlSessionId] || [];
+        const existingPending = msgs.find(m => m.isPending);
+        const pendingMsgId = existingPending ? existingPending.id : `pending_${Date.now()}`;
+        
+        if (!existingPending) {
+           addLocalMessage(urlSessionId, {
+             id: pendingMsgId,
+             role: 'assistant',
+             content: '',
+             run_id: activeRun.run_id,
+             created_at: new Date().toISOString(),
+             isPending: true
+           });
+        }
+        
+        startPolling(activeRun.run_id, urlSessionId, pendingMsgId);
       }
     }
-  }, [activeRunId, runs]);
+  }, [urlSessionId, runs]); // Only run when URL or global runs change
 
-  const baseMessages = sessionRunIds.flatMap(id => messagesByRunId[id] || []);
+  const baseMessages = activeSessionId ? (messagesBySessionId[activeSessionId] || []) : [];
   
   const displayMessages = [
     {
       id: 'greeting',
       role: 'assistant',
       content: 'Hello! I am GapFinder AI. How can I help you research today? You can ask me to analyze literature on any complex topic to identify research gaps.',
-      createdAt: new Date(0).toISOString()
+      created_at: new Date(0).toISOString()
     },
     ...baseMessages
   ];
@@ -124,66 +81,72 @@ export default function ChatDashboard() {
   const handleSend = async (payload) => {
     try {
       setIsRunning(true);
-      setLoadingText('Starting analysis...');
+      setLoadingText('Thinking...');
       
-      // Temporary local run ID until backend responds
-      const tempId = `local_${Date.now()}`;
-      setSessionRunIds(prev => [...prev, tempId]);
-      setActiveRunId(tempId);
+      let currentSessionId = activeSessionId;
       
-      addMessage(tempId, {
-        id: Date.now().toString(),
+      // 1. Create session if none exists
+      if (!currentSessionId) {
+        const title = payload.query.slice(0, 40) + (payload.query.length > 40 ? "..." : "");
+        const newSession = await createSession(title);
+        currentSessionId = newSession.id;
+        navigate(`/app/chat/${currentSessionId}`, { replace: true });
+      }
+
+      // Add local user message immediately for UI responsiveness
+      const tempUserMsgId = `temp_${Date.now()}`;
+      addLocalMessage(currentSessionId, {
+        id: tempUserMsgId,
         role: 'user',
         content: payload.query,
-        createdAt: new Date().toISOString()
+        created_at: new Date().toISOString()
       });
 
-      // Find the first valid run ID to use as the session_id
-      const validSessionId = sessionRunIds.find(id => !id.startsWith('local_'));
-      
-      const res = await runsService.startPipelineRun({
-        ...payload,
-        session_id: validSessionId || undefined
-      });
-      const newRunId = res.run_id;
-      
-      if (!newRunId) {
-        throw new Error("Failed to start analysis: No run ID received.");
+      // 2. Call Mediator endpoint
+      const response = await chatService.orchestrateChat(currentSessionId, payload);
+
+      // We can replace the temp user message with the real one later, but for now we just rely on next fetch.
+
+      if (response.type === "chat") {
+         // It's a casual chat response
+         addLocalMessage(currentSessionId, response.message);
+         setIsRunning(false);
+      } else if (response.type === "analysis") {
+         // It's a research analysis task
+         const newRunId = response.run_id;
+         setLoadingText('Starting analysis...');
+         
+         const pendingMsgId = `pending_${Date.now()}`;
+         addLocalMessage(currentSessionId, {
+           id: pendingMsgId,
+           role: 'assistant',
+           content: '',
+           run_id: newRunId,
+           created_at: new Date().toISOString(),
+           isPending: true
+         });
+
+         addRun({
+           run_id: newRunId,
+           query: response.topic,
+           status: 'pending',
+           started_at: new Date().toISOString(),
+           session_id: currentSessionId
+         });
+
+         startPolling(newRunId, currentSessionId, pendingMsgId);
       }
-      
-      setSessionRunIds(prev => prev.map(id => id === tempId ? newRunId : id));
-      
-      // Swap tempId with newRunId in state
-      useAppStore.setState(state => {
-        const msgs = state.messagesByRunId[tempId] || [];
-        const newMessagesByRunId = { ...state.messagesByRunId, [newRunId]: msgs };
-        delete newMessagesByRunId[tempId];
-        return { 
-          activeRunId: newRunId, 
-          messagesByRunId: newMessagesByRunId 
-        };
-      });
-
-      addRun({
-        run_id: newRunId,
-        query: payload.query,
-        status: res.status,
-        started_at: new Date().toISOString()
-      });
-
-      startPolling(newRunId);
-      navigate(`/app/run/${newRunId}`, { replace: !validSessionId });
 
     } catch (error) {
       console.error(error);
       setIsRunning(false);
-      // add error message
-      if (activeRunId) {
-        addMessage(activeRunId, {
+      
+      if (activeSessionId) {
+        addLocalMessage(activeSessionId, {
           id: Date.now().toString(),
           role: 'assistant',
-          content: 'An error occurred while starting the analysis.',
-          createdAt: new Date().toISOString()
+          content: 'An error occurred while processing your message.',
+          created_at: new Date().toISOString()
         });
       }
     }
@@ -192,37 +155,25 @@ export default function ChatDashboard() {
   const handleStop = () => {
     if (pollIntervalRef.current) clearTimeout(pollIntervalRef.current);
     setIsRunning(false);
-    if (activeRunId) {
-      addMessage(activeRunId, {
+    if (activeSessionId) {
+      addLocalMessage(activeSessionId, {
         id: Date.now().toString(),
         role: 'assistant',
         content: 'Execution terminated by user.',
-        createdAt: new Date().toISOString()
+        created_at: new Date().toISOString()
       });
     }
   };
 
-  function startPolling(runId) {
+  function startPolling(runId, sessionId, pendingMsgId) {
     if (pollIntervalRef.current) clearTimeout(pollIntervalRef.current);
     
-    const pollSessionId = crypto.randomUUID();
     let pollInterval = 2000;
     const maxInterval = 10000;
-    let notFoundCount = 0;
-    let networkErrorCount = 0;
-    let consecutive502s = 0;
-    
-    if (DEBUG) console.log(`[POLL START] run_id=${runId}, pollSessionId=${pollSessionId}`);
     
     const poll = async () => {
       try {
-        if (DEBUG) console.log(`[POLL TICK] run_id=${runId}, pollSessionId=${pollSessionId}`);
         const statusRes = await runsService.getRunStatus(runId);
-        // Reset counters on success
-        notFoundCount = 0;
-        networkErrorCount = 0;
-        consecutive502s = 0;
-        
         updateRun(runId, statusRes);
         useAppStore.getState().setDebugState({
           lastPollStatus: { run_id: runId, status: statusRes.status, current_step: statusRes.current_step }
@@ -232,107 +183,42 @@ export default function ChatDashboard() {
            setLoadingText(`Running step: ${statusRes.current_step}...`);
         }
 
-        // Stuck-run guard
-        if (statusRes.last_updated_at && statusRes.status !== 'completed' && statusRes.status !== 'failed') {
-          const lastUpdated = new Date(statusRes.last_updated_at).getTime();
-          const now = Date.now();
-          if (now - lastUpdated > 5 * 60 * 1000) { // 5 minutes
-            setIsRunning(false);
-            if (DEBUG) console.log(`[POLL STOP] reason=stuck_run_timeout`);
-            addMessage(runId, {
-              id: Date.now().toString(),
-              role: 'assistant',
-              content: 'Analysis timed out. The backend process may have been interrupted or restarted. Please try again.',
-              createdAt: new Date().toISOString()
-            });
-            return;
-          }
-        }
-
         if (statusRes.status === 'completed' || statusRes.status === 'failed') {
           setIsRunning(false);
-          
-          if (DEBUG) console.log(`[POLL STOP] reason=${statusRes.status}`);
           
           if (statusRes.status === 'completed') {
              setLoadingText('Fetching report...');
              try {
                const reportRes = await runsService.getRunReport(runId);
-               addMessage(runId, {
-                 id: Date.now().toString(),
-                 role: 'assistant',
-                 content: reportRes.content,
-                 createdAt: new Date().toISOString()
+               
+               // Save final message to backend
+               const savedMsg = await chatService.createMessage(sessionId, 'assistant', reportRes.content, runId);
+               
+               // Replace local pending message with saved msg
+               useChatStore.getState().updateLocalMessage(sessionId, pendingMsgId, {
+                  ...savedMsg,
+                  isPending: false
                });
+
              } catch (err) {
-               addMessage(runId, {
-                 id: Date.now().toString(),
-                 role: 'assistant',
+               updateLocalMessage(sessionId, pendingMsgId, {
                  content: 'Analysis completed, but report could not be fetched.',
-                 createdAt: new Date().toISOString()
+                 isPending: false
                });
              }
           } else {
-             addMessage(runId, {
-               id: Date.now().toString(),
-               role: 'assistant',
+             updateLocalMessage(sessionId, pendingMsgId, {
                content: `Analysis failed. Errors:\n\n${JSON.stringify(statusRes.errors) || 'Unknown error'}`,
-               createdAt: new Date().toISOString()
+               isPending: false
              });
           }
           return; // Stop polling
         }
         
-        // Increase backoff slightly for next poll, up to maxInterval
         pollInterval = Math.min(pollInterval * 1.5, maxInterval);
         pollIntervalRef.current = setTimeout(poll, pollInterval);
         
       } catch (err) {
-        if (DEBUG) console.error(`[POLL ERROR TICK] run_id=${runId}, pollSessionId=${pollSessionId}`, err);
-        
-        if (err.response && err.response.status === 404) {
-          notFoundCount++;
-          if (notFoundCount >= 2) {
-            setIsRunning(false);
-            if (DEBUG) console.log(`[POLL STOP] reason=404_limit`);
-            addMessage(runId, {
-              id: Date.now().toString(),
-              role: 'assistant',
-              content: 'Run not found. Please restart analysis.',
-              createdAt: new Date().toISOString()
-            });
-            return;
-          }
-        } else if (err.response && [502, 503, 504].includes(err.response.status)) {
-          consecutive502s++;
-          if (consecutive502s >= 5) {
-            setIsRunning(false);
-            if (DEBUG) console.log(`[POLL STOP] reason=502_limit`);
-            addMessage(runId, {
-              id: Date.now().toString(),
-              role: 'assistant',
-              content: 'Backend is unresponsive. Please try again later.',
-              createdAt: new Date().toISOString()
-            });
-            return;
-          }
-          setLoadingText("Temporary backend issue; retrying...");
-          pollInterval = Math.min(pollInterval * 2, 15000); // Slow down significantly
-        } else {
-          networkErrorCount++;
-          if (networkErrorCount >= 5) {
-            setIsRunning(false);
-            if (DEBUG) console.log(`[POLL STOP] reason=network_error_limit`);
-            addMessage(runId, {
-              id: Date.now().toString(),
-              role: 'assistant',
-              content: 'Backend may be sleeping. Try again.',
-              createdAt: new Date().toISOString()
-            });
-            return;
-          }
-        }
-        // Retry with backoff
         pollInterval = Math.min(pollInterval * 1.5, maxInterval);
         pollIntervalRef.current = setTimeout(poll, pollInterval);
       }
@@ -344,7 +230,6 @@ export default function ChatDashboard() {
   useEffect(() => {
     return () => {
       if (pollIntervalRef.current) {
-        if (DEBUG) console.log(`[POLL STOP] reason=unmounted`);
         clearTimeout(pollIntervalRef.current);
       }
     };
